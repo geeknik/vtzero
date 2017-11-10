@@ -36,7 +36,7 @@ TEST_CASE("output index_value_pair") {
 }
 
 TEST_CASE("output point") {
-    REQUIRE(get_output(vtzero::point{}) == "(0,0)");
-    REQUIRE(get_output(vtzero::point{4, 7}) == "(4,7)");
+    REQUIRE(get_output(vtzero::point<2>{}) == "(0,0)");
+    REQUIRE(get_output(vtzero::point<2>{4, 7}) == "(4,7)");
 }
 

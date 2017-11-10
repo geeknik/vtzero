@@ -36,13 +36,13 @@ static std::string open_tile(const std::string& path) {
 
 struct point_handler {
 
-    std::vector<vtzero::point> data{};
+    std::vector<vtzero::point<2>> data{};
 
     void points_begin(uint32_t count) {
         data.reserve(count);
     }
 
-    void points_point(const vtzero::point point) {
+    void points_point(const vtzero::point<2> point) {
         data.push_back(point);
     }
 
@@ -53,14 +53,14 @@ struct point_handler {
 
 struct linestring_handler {
 
-    std::vector<std::vector<vtzero::point>> data{};
+    std::vector<std::vector<vtzero::point<2>>> data{};
 
     void linestring_begin(uint32_t count) {
         data.emplace_back();
         data.back().reserve(count);
     }
 
-    void linestring_point(const vtzero::point point) {
+    void linestring_point(const vtzero::point<2> point) {
         data.back().push_back(point);
     }
 
@@ -71,14 +71,14 @@ struct linestring_handler {
 
 struct polygon_handler {
 
-    std::vector<std::vector<vtzero::point>> data{};
+    std::vector<std::vector<vtzero::point<2>>> data{};
 
     void ring_begin(uint32_t count) {
         data.emplace_back();
         data.back().reserve(count);
     }
 
-    void ring_point(const vtzero::point point) {
+    void ring_point(const vtzero::point<2> point) {
         data.back().push_back(point);
     }
 
@@ -91,14 +91,14 @@ struct polygon_handler {
 
 struct geom_handler {
 
-    std::vector<vtzero::point> point_data{};
-    std::vector<std::vector<vtzero::point>> line_data{};
+    std::vector<vtzero::point<2>> point_data{};
+    std::vector<std::vector<vtzero::point<2>>> line_data{};
 
     void points_begin(uint32_t count) {
         point_data.reserve(count);
     }
 
-    void points_point(const vtzero::point point) {
+    void points_point(const vtzero::point<2> point) {
         point_data.push_back(point);
     }
 
@@ -110,7 +110,7 @@ struct geom_handler {
         line_data.back().reserve(count);
     }
 
-    void linestring_point(const vtzero::point point) {
+    void linestring_point(const vtzero::point<2> point) {
         line_data.back().push_back(point);
     }
 
@@ -122,7 +122,7 @@ struct geom_handler {
         line_data.back().reserve(count);
     }
 
-    void ring_point(const vtzero::point point) {
+    void ring_point(const vtzero::point<2> point) {
         line_data.back().push_back(point);
     }
 
@@ -169,7 +169,7 @@ TEST_CASE("MVT test 002: Tile with single point feature without id") {
     point_handler handler;
     vtzero::decode_point_geometry(feature.geometry(), handler);
 
-    std::vector<vtzero::point> expected = {{25, 17}};
+    std::vector<vtzero::point<2>> expected = {{25, 17}};
     REQUIRE(handler.data == expected);
 }
 
@@ -326,7 +326,7 @@ TEST_CASE("MVT test 017: Valid point geometry") {
 
     REQUIRE(feature.geometry_type() == vtzero::GeomType::POINT);
 
-    const std::vector<vtzero::point> expected = {{25, 17}};
+    const std::vector<vtzero::point<2>> expected = {{25, 17}};
 
     SECTION("decode_point_geometry") {
         point_handler handler;
@@ -349,7 +349,7 @@ TEST_CASE("MVT test 018: Valid linestring geometry") {
 
     REQUIRE(feature.geometry_type() == vtzero::GeomType::LINESTRING);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{2, 2}, {2,10}, {10, 10}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{2, 2}, {2,10}, {10, 10}}};
 
     SECTION("decode_linestring_geometry") {
         linestring_handler handler;
@@ -372,7 +372,7 @@ TEST_CASE("MVT test 019: Valid polygon geometry") {
 
     REQUIRE(feature.geometry_type() == vtzero::GeomType::POLYGON);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{3, 6}, {8,12}, {20, 34}, {3, 6}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{3, 6}, {8,12}, {20, 34}, {3, 6}}};
 
     SECTION("deocode_polygon_geometry") {
         polygon_handler handler;
@@ -398,7 +398,7 @@ TEST_CASE("MVT test 020: Valid multipoint geometry") {
     point_handler handler;
     vtzero::decode_point_geometry(feature.geometry(), handler);
 
-    const std::vector<vtzero::point> expected = {{5, 7}, {3,2}};
+    const std::vector<vtzero::point<2>> expected = {{5, 7}, {3,2}};
 
     REQUIRE(handler.data == expected);
 }
@@ -414,7 +414,7 @@ TEST_CASE("MVT test 021: Valid multilinestring geometry") {
     linestring_handler handler;
     vtzero::decode_linestring_geometry(feature.geometry(), handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{2, 2}, {2,10}, {10, 10}}, {{1,1}, {3, 5}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{2, 2}, {2,10}, {10, 10}}, {{1,1}, {3, 5}}};
 
     REQUIRE(handler.data == expected);
 }
@@ -430,7 +430,7 @@ TEST_CASE("MVT test 022: Valid multipolygon geometry") {
     polygon_handler handler;
     vtzero::decode_polygon_geometry(feature.geometry(), handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {
+    const std::vector<std::vector<vtzero::point<2>>> expected = {
         {{0, 0}, {10, 0}, {10, 10}, {0,10}, {0, 0}},
         {{11, 11}, {20, 11}, {20, 20}, {11, 20}, {11, 11}},
         {{13, 13}, {13, 17}, {17, 17}, {17, 13}, {13, 13}}

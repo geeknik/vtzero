@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 
-using ls_type = std::vector<std::vector<vtzero::point>>;
+using ls_type = std::vector<std::vector<vtzero::point<2>>>;
 
 struct linestring_handler {
 
@@ -21,7 +21,7 @@ struct linestring_handler {
         data.back().reserve(count);
     }
 
-    void linestring_point(const vtzero::point point) {
+    void linestring_point(const vtzero::point<2> point) {
         data.back().push_back(point);
     }
 
@@ -43,7 +43,7 @@ void test_linestring_builder(bool with_id, bool with_prop) {
 
         fbuilder.add_linestring(3);
         fbuilder.set_point(10, 20);
-        fbuilder.set_point(vtzero::point{20, 30});
+        fbuilder.set_point(vtzero::point<2>{20, 30});
         fbuilder.set_point(mypoint{30, 40});
 
         if (with_prop) {
@@ -110,7 +110,7 @@ void test_multilinestring_builder(bool with_id, bool with_prop) {
 
     fbuilder.add_linestring(3);
     fbuilder.set_point(10, 20);
-    fbuilder.set_point(vtzero::point{20, 30});
+    fbuilder.set_point(vtzero::point<2>{20, 30});
     fbuilder.set_point(mypoint{30, 40});
 
     fbuilder.add_linestring(2);
@@ -230,7 +230,7 @@ TEST_CASE("Add linestring from container") {
 }
 
 TEST_CASE("Add linestring from iterator with wrong count throws assert") {
-    const std::vector<vtzero::point> points = {{10, 20}, {20, 30}, {30, 40}};
+    const std::vector<vtzero::point<2>> points = {{10, 20}, {20, 30}, {30, 40}};
 
     vtzero::tile_builder tbuilder;
     vtzero::layer_builder lbuilder{tbuilder, "test"};

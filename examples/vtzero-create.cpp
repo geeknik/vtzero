@@ -59,7 +59,7 @@ int main() {
 
     vtzero::point_feature_builder feature1{layer_points};
     feature1.set_id(5);
-    feature1.add_point(vtzero::point{20, 20});
+    feature1.add_point(vtzero::point<2>{20, 20});
     feature1.add_property("otherkey", "attr");
     feature1.commit();
 
@@ -70,8 +70,8 @@ int main() {
         feature.add_linestring(3);
         feature.set_point(10, 10);
         feature.set_point(10, 20);
-        feature.set_point(vtzero::point{20, 20});
-        std::vector<vtzero::point> points = {{11, 11}, {12, 13}};
+        feature.set_point(vtzero::point<2>{20, 20});
+        std::vector<vtzero::point<2>> points = {{11, 11}, {12, 13}};
         feature.add_linestring(points.begin(), points.end());
         feature.add_property("highway", "primary");
         feature.add_property(std::string{"maxspeed"}, maxspeed_index(50));

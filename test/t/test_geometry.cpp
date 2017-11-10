@@ -13,7 +13,7 @@ using iterator = container::const_iterator;
 TEST_CASE("geometry_decoder") {
     const container g = {};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
 
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.done());
@@ -24,7 +24,7 @@ TEST_CASE("geometry_decoder") {
 TEST_CASE("geometry_decoder with point") {
     const container g = {9, 50, 34};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -42,7 +42,7 @@ TEST_CASE("geometry_decoder with point") {
         REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
         REQUIRE_THROWS_AS(decoder.next_command(vtzero::detail::command_move_to()), assert_error);
         REQUIRE(decoder.count() == 1);
-        REQUIRE(decoder.next_point() == vtzero::point(25, 17));
+        REQUIRE(decoder.next_point() == vtzero::point<2>(25, 17));
 
         REQUIRE(decoder.done());
         REQUIRE_FALSE(decoder.next_command(vtzero::detail::command_move_to()));
@@ -61,7 +61,7 @@ TEST_CASE("geometry_decoder with incomplete point") {
         g.pop_back();
     }
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), 100};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), 100};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -73,15 +73,15 @@ TEST_CASE("geometry_decoder with incomplete point") {
 TEST_CASE("geometry_decoder with multipoint") {
     const container g = {17, 10, 14, 3, 9};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(5, 7));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(5, 7));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(3, 2));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(3, 2));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.done());
@@ -91,18 +91,18 @@ TEST_CASE("geometry_decoder with multipoint") {
 TEST_CASE("geometry_decoder with linestring") {
     const container g = {9, 4, 4, 18, 0, 16, 16, 0};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 2));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 2));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 10));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(10, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(10, 10));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.done());
@@ -112,19 +112,19 @@ TEST_CASE("geometry_decoder with linestring") {
 TEST_CASE("geometry_decoder with linestring with equal points") {
     const container g = {9, 4, 4, 18, 0, 16, 0, 0};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 2));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 2));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 10));
     REQUIRE(decoder.count() == 1);
 
-    REQUIRE(decoder.next_point() == vtzero::point(2, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 10));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.done());
@@ -133,27 +133,27 @@ TEST_CASE("geometry_decoder with linestring with equal points") {
 TEST_CASE("geometry_decoder with multilinestring") {
     const container g = {9, 4, 4, 18, 0, 16, 16, 0, 9, 17, 17, 10, 4, 8};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 2));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 2));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(2, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(2, 10));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(10, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(10, 10));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(1, 1));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(1, 1));
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(3, 5));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(3, 5));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.done());
@@ -163,18 +163,18 @@ TEST_CASE("geometry_decoder with multilinestring") {
 TEST_CASE("geometry_decoder with polygon") {
     const container g = {9, 6, 12, 18, 10, 12, 24, 44, 15};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(3, 6));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(3, 6));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(8, 12));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(8, 12));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(20, 34));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(20, 34));
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.next_command(vtzero::detail::command_close_path()));
     REQUIRE(decoder.count() == 0);
@@ -186,15 +186,15 @@ TEST_CASE("geometry_decoder with polygon") {
 TEST_CASE("geometry_decoder with polygon with wrong ClosePath count") {
     const container g = {9, 6, 12, 18, 10, 12, 24, 44, 23};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
-    REQUIRE(decoder.next_point() == vtzero::point(3, 6));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(3, 6));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
-    REQUIRE(decoder.next_point() == vtzero::point(8, 12));
-    REQUIRE(decoder.next_point() == vtzero::point(20, 34));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(8, 12));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(20, 34));
     REQUIRE_THROWS_AS(decoder.next_command(vtzero::detail::command_close_path()), vtzero::geometry_exception);
 }
 
@@ -202,48 +202,48 @@ TEST_CASE("geometry_decoder with multipolygon") {
     const container g = {9, 0, 0, 26, 20, 0, 0, 20, 19, 0, 15, 9, 22, 2, 26, 18,
                          0, 0, 18, 17, 0, 15, 9, 4, 13, 26, 0, 8, 8, 0, 0, 7, 15};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(0, 0));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(0, 0));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 3);
-    REQUIRE(decoder.next_point() == vtzero::point(10, 0));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(10, 0));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(10, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(10, 10));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(0, 10));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(0, 10));
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.next_command(vtzero::detail::command_close_path()));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(11, 11));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(11, 11));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 3);
-    REQUIRE(decoder.next_point() == vtzero::point(20, 11));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(20, 11));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(20, 20));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(20, 20));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(11, 20));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(11, 20));
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.next_command(vtzero::detail::command_close_path()));
     REQUIRE(decoder.count() == 0);
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(13, 13));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(13, 13));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 3);
-    REQUIRE(decoder.next_point() == vtzero::point(13, 17));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(13, 17));
     REQUIRE(decoder.count() == 2);
-    REQUIRE(decoder.next_point() == vtzero::point(17, 17));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(17, 17));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(17, 13));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(17, 13));
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.next_command(vtzero::detail::command_close_path()));
     REQUIRE(decoder.count() == 0);
@@ -261,13 +261,13 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in x coordin
                            protozero::encode_zigzag32(1)
                          };
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(std::numeric_limits<int32_t>::max(), 0));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(std::numeric_limits<int32_t>::max(), 0));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 1);
     decoder.next_point();
@@ -282,13 +282,13 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in y coordin
                            protozero::encode_zigzag32(-1)
                          };
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
     REQUIRE(decoder.next_command(vtzero::detail::command_move_to()));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(0, std::numeric_limits<int32_t>::min()));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(0, std::numeric_limits<int32_t>::min()));
     REQUIRE(decoder.next_command(vtzero::detail::command_line_to()));
     REQUIRE(decoder.count() == 1);
     decoder.next_point();
@@ -298,7 +298,7 @@ TEST_CASE("geometry_decoder with multipoint with a huge count") {
     const uint32_t huge_value = (1ul << 29) - 1;
     const container g = {vtzero::detail::command_move_to(huge_value), 10, 10};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -308,7 +308,7 @@ TEST_CASE("geometry_decoder with multipoint with a huge count") {
 TEST_CASE("geometry_decoder with multipoint with not enough points") {
     const container g = {vtzero::detail::command_move_to(2), 10};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), 1};
+    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), 1};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
