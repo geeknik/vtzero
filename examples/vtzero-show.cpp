@@ -26,7 +26,7 @@ public:
     void points_begin(const uint32_t /*count*/) const noexcept {
     }
 
-    void points_point(const vtzero::point point) const {
+    void points_point(const vtzero::point<2> point) const {
         std::cout << "      POINT(" << point.x << ',' << point.y << ")\n";
     }
 
@@ -39,7 +39,7 @@ public:
         output += "](";
     }
 
-    void linestring_point(const vtzero::point point) {
+    void linestring_point(const vtzero::point<2> point) {
         output += std::to_string(point.x);
         output += ' ';
         output += std::to_string(point.y);
@@ -63,7 +63,7 @@ public:
         output += "](";
     }
 
-    void ring_point(const vtzero::point point) {
+    void ring_point(const vtzero::point<2> point) {
         output += std::to_string(point.x);
         output += ' ';
         output += std::to_string(point.y);

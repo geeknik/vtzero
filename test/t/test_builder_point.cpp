@@ -12,13 +12,13 @@
 
 struct point_handler {
 
-    std::vector<vtzero::point> data;
+    std::vector<vtzero::point<2>> data;
 
     void points_begin(uint32_t count) {
         data.reserve(count);
     }
 
-    void points_point(const vtzero::point point) {
+    void points_point(const vtzero::point<2> point) {
         data.push_back(point);
     }
 
@@ -46,7 +46,7 @@ static void test_point_builder(bool with_id, bool with_prop) {
         }
 
         SECTION("add point using vtzero::point / property using key/value") {
-            fbuilder.add_point(vtzero::point{10, 20});
+            fbuilder.add_point(vtzero::point<2>{10, 20});
             if (with_prop) {
                 fbuilder.add_property("foo", vtzero::encoded_property_value{22});
             }
@@ -80,7 +80,7 @@ static void test_point_builder(bool with_id, bool with_prop) {
     point_handler handler;
     vtzero::decode_point_geometry(feature.geometry(), handler);
 
-    const std::vector<vtzero::point> result = {{10, 20}};
+    const std::vector<vtzero::point<2>> result = {{10, 20}};
     REQUIRE(handler.data == result);
 }
 
@@ -124,7 +124,7 @@ static void test_multipoint_builder(bool with_id, bool with_prop) {
 
     fbuilder.add_points(3);
     fbuilder.set_point(10, 20);
-    fbuilder.set_point(vtzero::point{20, 30});
+    fbuilder.set_point(vtzero::point<2>{20, 30});
     fbuilder.set_point(mypoint{30, 40});
 
     if (with_prop) {
@@ -149,7 +149,7 @@ static void test_multipoint_builder(bool with_id, bool with_prop) {
     point_handler handler;
     vtzero::decode_point_geometry(feature.geometry(), handler);
 
-    const std::vector<vtzero::point> result = {{10, 20}, {20, 30}, {30, 40}};
+    const std::vector<vtzero::point<2>> result = {{10, 20}, {20, 30}, {30, 40}};
     REQUIRE(handler.data == result);
 }
 
@@ -223,7 +223,7 @@ TEST_CASE("Calling point_feature_builder::set_point() too often throws assert") 
 }
 
 TEST_CASE("Add points from container") {
-    const std::vector<vtzero::point> points = {{10, 20}, {20, 30}, {30, 40}};
+    const std::vector<vtzero::point<2>> points = {{10, 20}, {20, 30}, {30, 40}};
 
     vtzero::tile_builder tbuilder;
     vtzero::layer_builder lbuilder{tbuilder, "test"};
@@ -266,7 +266,7 @@ TEST_CASE("Add points from container") {
 }
 /*
 TEST_CASE("Add points from iterator with wrong count throws assert") {
-    const std::vector<vtzero::point> points = {{10, 20}, {20, 30}, {30, 40}};
+    const std::vector<vtzero::point<2>> points = {{10, 20}, {20, 30}, {30, 40}};
 
     vtzero::tile_builder tbuilder;
     vtzero::layer_builder lbuilder{tbuilder, "test"};

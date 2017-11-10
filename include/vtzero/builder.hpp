@@ -363,7 +363,7 @@ namespace vtzero {
         countdown_value m_num_points;
 
         /// Last point (used to calculate delta between coordinates)
-        point m_cursor{0, 0};
+        point<2> m_cursor{0, 0};
 
         /// Constructor.
         explicit feature_builder(detail::layer_builder_impl* layer) :
@@ -584,7 +584,7 @@ namespace vtzero {
          * @pre You must not have any calls to add_property() before calling
          *      this method.
          */
-        void add_point(const point p) {
+        void add_point(const point<2> p) {
             vtzero_assert(m_feature_writer.valid() &&
                           "Can not add geometry after commit() or rollback()");
             vtzero_assert(!m_pbf_geometry.valid() &&
@@ -606,7 +606,7 @@ namespace vtzero {
          *      this method.
          */
         void add_point(const int32_t x, const int32_t y) {
-            add_point(point{x, y});
+            add_point(point<2>{x, y});
         }
 
         /**
@@ -659,7 +659,7 @@ namespace vtzero {
          * @pre You must not have any calls to add_property() before calling
          *      this method.
          */
-        void set_point(const point p) {
+        void set_point(const point<2> p) {
             vtzero_assert(m_feature_writer.valid() &&
                           "Can not add geometry after commit() or rollback()");
             vtzero_assert(m_pbf_geometry.valid() &&
@@ -685,7 +685,7 @@ namespace vtzero {
          *      this method.
          */
         void set_point(const int32_t x, const int32_t y) {
-            set_point(point{x, y});
+            set_point(point<2>{x, y});
         }
 
         /**
@@ -810,7 +810,7 @@ namespace vtzero {
          * @pre You must not have any calls to add_property() before calling
          *      this method.
          */
-        void set_point(const point p) {
+        void set_point(const point<2> p) {
             vtzero_assert(m_feature_writer.valid() &&
                           "Can not add geometry after commit() or rollback()");
             vtzero_assert(m_pbf_geometry.valid() &&
@@ -852,7 +852,7 @@ namespace vtzero {
          *      this method.
          */
         void set_point(const int32_t x, const int32_t y) {
-            set_point(point{x, y});
+            set_point(point<2>{x, y});
         }
 
         /**
@@ -928,7 +928,7 @@ namespace vtzero {
      */
     class polygon_feature_builder : public feature_builder {
 
-        point m_first_point{0, 0};
+        point<2> m_first_point{0, 0};
         bool m_start_ring = false;
 
     public:
@@ -986,7 +986,7 @@ namespace vtzero {
          * @pre You must not have any calls to add_property() before calling
          *      this method.
          */
-        void set_point(const point p) {
+        void set_point(const point<2> p) {
             vtzero_assert(m_feature_writer.valid() &&
                           "Can not add geometry after commit() or rollback()");
             vtzero_assert(m_pbf_geometry.valid() &&
@@ -1038,7 +1038,7 @@ namespace vtzero {
          *      this method.
          */
         void set_point(const int32_t x, const int32_t y) {
-            set_point(point{x, y});
+            set_point(point<2>{x, y});
         }
 
         /**

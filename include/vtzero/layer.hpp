@@ -58,6 +58,7 @@ namespace vtzero {
         data_view m_data{};
         uint32_t m_version = 1; // defaults to 1, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L55
         uint32_t m_extent = 4096; // defaults to 4096, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L70
+        uint32_t m_dimensions = 2;
         std::size_t m_num_features = 0;
         data_view m_name{};
         protozero::pbf_message<detail::pbf_layer> m_layer_reader{m_data};
@@ -129,6 +130,9 @@ namespace vtzero {
                         break;
                     case protozero::tag_and_type(detail::pbf_layer::extent, protozero::pbf_wire_type::varint):
                         m_extent = reader.get_uint32();
+                        break;
+                    case protozero::tag_and_type(detail::pbf_layer::dimensions, protozero::pbf_wire_type::varint):
+                        m_dimensions = reader.get_uint32();
                         break;
                     default:
                         throw format_exception{"unknown field in layer (tag=" +
@@ -204,6 +208,17 @@ namespace vtzero {
             vtzero_assert_in_noexcept_function(valid());
 
             return m_extent;
+        }
+        
+        /**
+         * Return the dimensions of this layer.
+         *
+         * @pre @code valid() @endcode
+         */
+        std::uint32_t dimensions() const noexcept {
+            vtzero_assert_in_noexcept_function(valid());
+
+            return m_dimensions;
         }
 
         /**

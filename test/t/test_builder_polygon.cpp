@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 
-using polygon_type = std::vector<std::vector<vtzero::point>>;
+using polygon_type = std::vector<std::vector<vtzero::point<2>>>;
 
 struct polygon_handler {
 
@@ -21,7 +21,7 @@ struct polygon_handler {
         data.back().reserve(count);
     }
 
-    void ring_point(const vtzero::point point) {
+    void ring_point(const vtzero::point<2> point) {
         data.back().push_back(point);
     }
 
@@ -43,7 +43,7 @@ static void test_polygon_builder(bool with_id, bool with_prop) {
 
         fbuilder.add_ring(4);
         fbuilder.set_point(10, 20);
-        fbuilder.set_point(vtzero::point{20, 30});
+        fbuilder.set_point(vtzero::point<2>{20, 30});
         fbuilder.set_point(mypoint{30, 40});
         fbuilder.set_point(10, 20);
 
@@ -123,7 +123,7 @@ static void test_multipolygon_builder(bool with_id, bool with_prop) {
 
     fbuilder.add_ring(4);
     fbuilder.set_point(10, 20);
-    fbuilder.set_point(vtzero::point{20, 30});
+    fbuilder.set_point(vtzero::point<2>{20, 30});
     fbuilder.set_point(mypoint{30, 40});
     fbuilder.set_point(10, 20);
 
@@ -293,7 +293,7 @@ TEST_CASE("Add polygon from container") {
 
 #if 0
 TEST_CASE("Add polygon from iterator with wrong count throws assert") {
-    const std::vector<vtzero::point> points = {{10, 20}, {20, 30}, {30, 40}, {10, 20}};
+    const std::vector<vtzero::point<2>> points = {{10, 20}, {20, 30}, {30, 40}, {10, 20}};
 
     vtzero::tile_builder tbuilder;
     vtzero::layer_builder lbuilder{tbuilder, "test"};

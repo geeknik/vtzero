@@ -28,7 +28,11 @@ documentation.
 namespace vtzero {
 
     /// A simple point class
-    struct point {
+    template <int Dimensions>
+    struct point;
+
+    template <>
+    struct point<2> {
 
         /// X coordinate
         int32_t x = 0;
@@ -43,6 +47,29 @@ namespace vtzero {
         constexpr point(int32_t x_, int32_t y_) noexcept :
             x(x_),
             y(y_) {
+        }
+    }; // struct point
+    
+    template <>
+    struct point<3> {
+
+        /// X coordinate
+        int32_t x = 0;
+
+        /// Y coordinate
+        int32_t y = 0;
+
+        // Z coordinate
+        int32_t z = 0;
+
+        /// Default construct to 0 coordinates
+        constexpr point() noexcept = default;
+
+        /// Constructor
+        constexpr point(int32_t x_, int32_t y_, int32_t z_) noexcept :
+            x(x_),
+            y(y_),
+            z(z_) {
         }
 
     }; // struct point
@@ -64,18 +91,24 @@ namespace vtzero {
      * If your point type doesn't have members x any y, you can overload this
      * function for your type and it will be used by vtzero.
      */
+
     template <typename TPoint>
-    point create_vtzero_point(const TPoint& p) noexcept {
+    point<2> create_vtzero_point(const TPoint& p) noexcept {
         return {p.x, p.y};
     }
 
     /// Points are equal if their coordinates are
-    inline constexpr bool operator==(const point a, const point b) noexcept {
+    inline constexpr bool operator==(const point<2> a, const point<2> b) noexcept {
         return a.x == b.x && a.y == b.y;
+    }
+    
+    inline constexpr bool operator==(const point<3> a, const point<3> b) noexcept {
+        return a.x == b.x && a.y == b.y && a.z == b.z;
     }
 
     /// Points are not equal if their coordinates aren't
-    inline constexpr bool operator!=(const point a, const point b) noexcept {
+    template <int Dimensions>
+    inline constexpr bool operator!=(const point<Dimensions> a, const point<Dimensions> b) noexcept {
         return !(a == b);
     }
 
@@ -116,8 +149,9 @@ namespace vtzero {
         inline constexpr uint32_t max_command_count() noexcept {
             return get_command_count(std::numeric_limits<uint32_t>::max());
         }
-
-        inline constexpr int64_t det(const point a, const point b) noexcept {
+        
+        template <int Dimensions>
+        inline constexpr int64_t det(const point<Dimensions> a, const point<Dimensions> b) noexcept {
             return static_cast<int64_t>(a.x) * static_cast<int64_t>(b.y) -
                    static_cast<int64_t>(b.x) * static_cast<int64_t>(a.y);
         }
@@ -144,28 +178,55 @@ namespace vtzero {
             }
 
         };
-
+        
+        template <typename TIterator>
+        void move_cursor(TIterator & itr, point<2> & cursor) {
+            int64_t x = protozero::decode_zigzag32(*itr++);
+            int64_t y = protozero::decode_zigzag32(*itr++);
+            x += cursor.x;
+            y += cursor.y;
+            cursor.x = static_cast<int32_t>(x);
+            cursor.y = static_cast<int32_t>(y);
+        }
+        
+        template <typename TIterator>
+        void move_cursor(TIterator & itr, point<3> & cursor) {
+            int64_t x = protozero::decode_zigzag32(*itr++);
+            int64_t y = protozero::decode_zigzag32(*itr++);
+            int64_t z = protozero::decode_zigzag32(*itr++);
+            x += cursor.x;
+            y += cursor.y;
+            z += cursor.z;
+            cursor.x = static_cast<int32_t>(x);
+            cursor.y = static_cast<int32_t>(y);
+            cursor.z = static_cast<int32_t>(z);
+        }
+        
         /**
          * Decode a geometry as specified in spec 4.3 from a sequence of 32 bit
          * unsigned integers. This templated base class can be instantiated
          * with a different iterator type for testing than for normal use.
          */
-        template <typename TIterator>
+        template <typename TIterator, int Dimensions>
         class geometry_decoder {
 
         public:
 
             using iterator_type = TIterator;
+            using point_type = point<Dimensions>;
 
         private:
 
             iterator_type m_it;
             iterator_type m_end;
 
-            point m_cursor{0, 0};
+            point_type m_cursor;
 
             // maximum value for m_count before we throw an exception
             uint32_t m_max_count;
+
+            // the last command read
+            uint32_t m_command_id = 0;
 
             /**
              * The current count value is set from the CommandInteger and
@@ -174,6 +235,7 @@ namespace vtzero {
              * next_command() is called.
              */
             uint32_t m_count = 0;
+            
 
         public:
 
@@ -224,26 +286,15 @@ namespace vtzero {
                 return true;
             }
 
-            point next_point() {
+
+            point_type next_point() {
                 vtzero_assert(m_count > 0);
 
                 if (m_it == m_end || std::next(m_it) == m_end) {
                     throw geometry_exception{"too few points in geometry"};
                 }
 
-                // spec 4.3.2 "A ParameterInteger is zigzag encoded"
-                int64_t x = protozero::decode_zigzag32(*m_it++);
-                int64_t y = protozero::decode_zigzag32(*m_it++);
-
-                // x and y are int64_t so this addition can never overflow
-                x += m_cursor.x;
-                y += m_cursor.y;
-
-                // The cast is okay, because a valid vector tile can never
-                // contain values that would overflow here and we don't care
-                // what happens to invalid tiles here.
-                m_cursor.x = static_cast<int32_t>(x);
-                m_cursor.y = static_cast<int32_t>(y);
+                move_cursor(m_it, m_cursor);
 
                 --m_count;
 
@@ -286,7 +337,7 @@ namespace vtzero {
                         throw geometry_exception{"MoveTo command count is not 1 (spec 4.3.4.3)"};
                     }
 
-                    const auto first_point = next_point();
+                    const point_type first_point = next_point();
 
                     // spec 4.3.4.3 "2. A LineTo command"
                     if (!next_command(CommandId::LINE_TO)) {
@@ -321,8 +372,8 @@ namespace vtzero {
                     }
 
                     int64_t sum = 0;
-                    const point start_point = next_point();
-                    point last_point = start_point;
+                    const point_type start_point = next_point();
+                    point_type last_point = start_point;
 
                     // spec 4.3.4.4 "2. A LineTo command"
                     if (!next_command(CommandId::LINE_TO)) {
@@ -334,7 +385,7 @@ namespace vtzero {
                     std::forward<TGeomHandler>(geom_handler).ring_point(start_point);
 
                     while (count() > 0) {
-                        const point p = next_point();
+                        const point_type p = next_point();
                         sum += detail::det(last_point, p);
                         last_point = p;
                         std::forward<TGeomHandler>(geom_handler).ring_point(p);
@@ -369,10 +420,10 @@ namespace vtzero {
      * @throws geometry_error If there is a problem with the geometry.
      * @pre Geometry must be a point geometry.
      */
-    template <typename TGeomHandler>
+    template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_point_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POINT);
-        detail::geometry_decoder<decltype(geometry.begin())> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
         return decoder.decode_point(std::forward<TGeomHandler>(geom_handler));
     }
 
@@ -387,10 +438,10 @@ namespace vtzero {
      * @throws geometry_error If there is a problem with the geometry.
      * @pre Geometry must be a linestring geometry.
      */
-    template <typename TGeomHandler>
+    template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_linestring_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::LINESTRING);
-        detail::geometry_decoder<decltype(geometry.begin())> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
         return decoder.decode_linestring(std::forward<TGeomHandler>(geom_handler));
     }
 
@@ -405,10 +456,10 @@ namespace vtzero {
      * @throws geometry_error If there is a problem with the geometry.
      * @pre Geometry must be a polygon geometry.
      */
-    template <typename TGeomHandler>
+    template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_polygon_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POLYGON);
-        detail::geometry_decoder<decltype(geometry.begin())> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
         return decoder.decode_polygon(std::forward<TGeomHandler>(geom_handler));
     }
 
@@ -423,9 +474,9 @@ namespace vtzero {
      * @throws geometry_error If the geometry has type UNKNOWN of if there is
      *                        a problem with the geometry.
      */
-    template <typename TGeomHandler>
+    template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
-        detail::geometry_decoder<decltype(geometry.begin())> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
         switch (geometry.type()) {
             case GeomType::POINT:
                 return decoder.decode_point(std::forward<TGeomHandler>(geom_handler));

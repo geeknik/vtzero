@@ -48,6 +48,7 @@ namespace vtzero {
         protozero::pbf_reader::const_uint32_iterator m_property_iterator{};
         std::size_t m_num_properties = 0;
         data_view m_geometry{};
+        data_view m_knots{};
         GeomType m_geometry_type = GeomType::UNKNOWN; // defaults to UNKNOWN, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L41
         bool m_has_id = false;
 

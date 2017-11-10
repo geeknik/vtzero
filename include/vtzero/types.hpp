@@ -49,7 +49,8 @@ namespace vtzero {
         UNKNOWN    = 0,
         POINT      = 1,
         LINESTRING = 2,
-        POLYGON    = 3
+        POLYGON    = 3,
+        SPLINE     = 4
     };
 
     /**
@@ -70,7 +71,9 @@ namespace vtzero {
         int_value    = 4,
         uint_value   = 5,
         sint_value   = 6,
-        bool_value   = 7
+        bool_value   = 7,
+        map_value    = 8,
+        list_value   = 9
     };
 
     /**
@@ -90,19 +93,21 @@ namespace vtzero {
         };
 
         enum class pbf_layer : protozero::pbf_tag_type {
-            name     =  1,
-            features =  2,
-            keys     =  3,
-            values   =  4,
-            extent   =  5,
-            version  = 15
+            name       =  1,
+            features   =  2,
+            keys       =  3,
+            values     =  4,
+            extent     =  5,
+            dimensions =  6,
+            version    = 15
         };
 
         enum class pbf_feature : protozero::pbf_tag_type {
             id       = 1,
             tags     = 2,
             type     = 3,
-            geometry = 4
+            geometry = 4,
+            knots    = 5
         };
 
         using pbf_value = property_value_type;
