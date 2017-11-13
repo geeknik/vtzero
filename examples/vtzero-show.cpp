@@ -56,6 +56,51 @@ public:
         output += ")\n";
         std::cout << output;
     }
+    
+    void controlpoints_begin(const uint32_t count) {
+        output = "      SPLINE[count=";
+        output += std::to_string(count);
+        output += "](";
+    }
+
+    void controlpoints_point(const vtzero::point<2> point) {
+        output += std::to_string(point.x);
+        output += ' ';
+        output += std::to_string(point.y);
+        output += ',';
+    }
+    
+    void controlpoints_end() {
+        if (output.empty()) {
+            return;
+        }
+        if (output.back() == ',') {
+            output.resize(output.size() - 1);
+        }
+        output += "), ";
+    }
+
+    void knots_begin(const uint32_t count) {
+        output += "knots[count=";
+        output += std::to_string(count);
+        output += "](";
+    }
+
+    void knots_value(double val) {
+        output += std::to_string(val);
+        output += ',';
+    }
+    
+    void knots_end() {
+        if (output.empty()) {
+            return;
+        }
+        if (output.back() == ',') {
+            output.resize(output.size() - 1);
+        }
+        output += ")\n";
+        std::cout << output;
+    }
 
     void ring_begin(const uint32_t count) {
         output = "      RING[count=";

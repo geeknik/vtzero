@@ -207,19 +207,22 @@ namespace vtzero {
          * unsigned integers. This templated base class can be instantiated
          * with a different iterator type for testing than for normal use.
          */
-        template <typename TIterator, int Dimensions>
+        template <typename TIterator, typename TIterator2, int Dimensions>
         class geometry_decoder {
 
         public:
 
             using iterator_type = TIterator;
+            using knots_iterator_type = TIterator2;
             using point_type = point<Dimensions>;
 
         private:
 
             iterator_type m_it;
             iterator_type m_end;
-
+            knots_iterator_type m_knots_it;
+            knots_iterator_type m_knots_end;
+    
             point_type m_cursor;
 
             // maximum value for m_count before we throw an exception
@@ -239,9 +242,15 @@ namespace vtzero {
 
         public:
 
-            geometry_decoder(iterator_type begin, iterator_type end, std::size_t max) :
+            geometry_decoder(iterator_type begin, 
+                             iterator_type end, 
+                             knots_iterator_type knots_begin, 
+                             knots_iterator_type knots_end, 
+                             std::size_t max) :
                 m_it(begin),
                 m_end(end),
+                m_knots_it(knots_begin),
+                m_knots_end(knots_end),
                 m_max_count(static_cast<uint32_t>(max)) {
                 vtzero_assert(max <= detail::max_command_count());
             }
@@ -363,6 +372,54 @@ namespace vtzero {
             }
 
             template <typename TGeomHandler>
+            typename detail::get_result<TGeomHandler>::type decode_spline(TGeomHandler&& geom_handler) {
+                // spec 4.3.4.3 "1. A MoveTo command"
+                if (next_command(detail::command_move_to())) {
+                    // spec 4.3.4.3 "with a command count of 1"
+                    if (count() != 1) {
+                        throw geometry_exception{"MoveTo command count is not 1 (spec 4.3.4.3)"};
+                    }
+
+                    const point_type first_point = next_point();
+
+                    // spec 4.3.4.3 "2. A LineTo command"
+                    if (!next_command(detail::command_line_to())) {
+                        throw geometry_exception{"expected LineTo command (spec 4.3.4.3)"};
+                    }
+
+                    // spec 4.3.4.3 "with a command count greater than 0"
+                    if (count() == 0) {
+                        throw geometry_exception{"LineTo command count is zero (spec 4.3.4.3)"};
+                    }
+
+                    std::forward<TGeomHandler>(geom_handler).controlpoints_begin(count() + 1);
+
+                    std::forward<TGeomHandler>(geom_handler).controlpoints_point(first_point);
+                    while (count() > 0) {
+                        std::forward<TGeomHandler>(geom_handler).controlpoints_point(next_point());
+                    }
+                    std::forward<TGeomHandler>(geom_handler).controlpoints_end();
+                    
+                    auto d = std::distance(m_knots_it, m_knots_end);
+                    uint32_t n = d > 0 ? static_cast<uint32_t>(d) : 0;
+                    std::forward<TGeomHandler>(geom_handler).knots_begin(n);
+                    
+                    for (; m_knots_it != m_knots_end; ++m_knots_it) {
+                        std::forward<TGeomHandler>(geom_handler).knots_value(*m_knots_it);
+                    }
+
+                    std::forward<TGeomHandler>(geom_handler).knots_end();
+
+                }
+                
+                if (!done()) {
+                    throw geometry_exception{"additional data after end of geometry (spec 4.3.4.2)"};
+                }
+                
+                return detail::get_result<TGeomHandler>{}(std::forward<TGeomHandler>(geom_handler));
+            }
+
+            template <typename TGeomHandler>
             typename detail::get_result<TGeomHandler>::type decode_polygon(TGeomHandler&& geom_handler) {
                 // spec 4.3.4.4 "1. A MoveTo command"
                 while (next_command(CommandId::MOVE_TO)) {
@@ -423,7 +480,15 @@ namespace vtzero {
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_point_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POINT);
-        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()),
+                                 decltype(geometry.knots_begin()), 
+                                 Dimensions> decoder {
+                                     geometry.begin(), 
+                                     geometry.end(), 
+                                     geometry.knots_begin(), 
+                                     geometry.knots_end(), 
+                                     geometry.data().size() / 2
+                                 };
         return decoder.decode_point(std::forward<TGeomHandler>(geom_handler));
     }
 
@@ -441,8 +506,42 @@ namespace vtzero {
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_linestring_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::LINESTRING);
-        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()),
+                                 decltype(geometry.knots_begin()), 
+                                 Dimensions> decoder {
+                                     geometry.begin(), 
+                                     geometry.end(), 
+                                     geometry.knots_begin(), 
+                                     geometry.knots_end(), 
+                                     geometry.data().size() / 2
+                                 };
         return decoder.decode_linestring(std::forward<TGeomHandler>(geom_handler));
+    }
+    
+    /**
+     * Decode a spline geometry.
+     *
+     * @tparam TGeomHandler Handler class. See tutorial for details.
+     * @param geometry The geometry as returned by feature.geometry().
+     * @param geom_handler An object of TGeomHandler.
+     * @returns whatever geom_handler.result() returns if that function exists,
+     *          void otherwise
+     * @throws geometry_error If there is a problem with the geometry.
+     * @pre Geometry must be a spline geometry.
+     */
+    template <typename TGeomHandler, int Dimensions = 2>
+    typename detail::get_result<TGeomHandler>::type decode_spline_geometry(const geometry geometry, TGeomHandler&& geom_handler) {
+        vtzero_assert(geometry.type() == GeomType::LINESTRING);
+        detail::geometry_decoder<decltype(geometry.begin()),
+                                 decltype(geometry.knots_begin()), 
+                                 Dimensions> decoder {
+                                     geometry.begin(), 
+                                     geometry.end(), 
+                                     geometry.knots_begin(), 
+                                     geometry.knots_end(), 
+                                     geometry.data().size() / 2
+                                 };
+        return decoder.decode_spline(std::forward<TGeomHandler>(geom_handler));
     }
 
     /**
@@ -459,7 +558,15 @@ namespace vtzero {
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_polygon_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POLYGON);
-        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()),
+                                 decltype(geometry.knots_begin()), 
+                                 Dimensions> decoder {
+                                     geometry.begin(), 
+                                     geometry.end(), 
+                                     geometry.knots_begin(), 
+                                     geometry.knots_end(), 
+                                     geometry.data().size() / 2
+                                 };
         return decoder.decode_polygon(std::forward<TGeomHandler>(geom_handler));
     }
 
@@ -476,12 +583,22 @@ namespace vtzero {
      */
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
-        detail::geometry_decoder<decltype(geometry.begin()), Dimensions> decoder{geometry.begin(), geometry.end(), geometry.data().size() / 2};
+        detail::geometry_decoder<decltype(geometry.begin()),
+                                 decltype(geometry.knots_begin()), 
+                                 Dimensions> decoder {
+                                     geometry.begin(), 
+                                     geometry.end(), 
+                                     geometry.knots_begin(), 
+                                     geometry.knots_end(), 
+                                     geometry.data().size() / 2
+                                 };
         switch (geometry.type()) {
             case GeomType::POINT:
                 return decoder.decode_point(std::forward<TGeomHandler>(geom_handler));
             case GeomType::LINESTRING:
                 return decoder.decode_linestring(std::forward<TGeomHandler>(geom_handler));
+            case GeomType::SPLINE:
+                return decoder.decode_spline(std::forward<TGeomHandler>(geom_handler));
             case GeomType::POLYGON:
                 return decoder.decode_polygon(std::forward<TGeomHandler>(geom_handler));
             default:

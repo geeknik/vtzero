@@ -13,7 +13,7 @@ using iterator = container::const_iterator;
 TEST_CASE("geometry_decoder") {
     const container g = {};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
 
     REQUIRE(decoder.count() == 0);
     REQUIRE(decoder.done());
@@ -24,7 +24,7 @@ TEST_CASE("geometry_decoder") {
 TEST_CASE("geometry_decoder with point") {
     const container g = {9, 50, 34};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -61,7 +61,7 @@ TEST_CASE("geometry_decoder with incomplete point") {
         g.pop_back();
     }
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), 100};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, 100};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -73,7 +73,7 @@ TEST_CASE("geometry_decoder with incomplete point") {
 TEST_CASE("geometry_decoder with multipoint") {
     const container g = {17, 10, 14, 3, 9};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -91,7 +91,7 @@ TEST_CASE("geometry_decoder with multipoint") {
 TEST_CASE("geometry_decoder with linestring") {
     const container g = {9, 4, 4, 18, 0, 16, 16, 0};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -112,7 +112,7 @@ TEST_CASE("geometry_decoder with linestring") {
 TEST_CASE("geometry_decoder with linestring with equal points") {
     const container g = {9, 4, 4, 18, 0, 16, 0, 0};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -133,7 +133,7 @@ TEST_CASE("geometry_decoder with linestring with equal points") {
 TEST_CASE("geometry_decoder with multilinestring") {
     const container g = {9, 4, 4, 18, 0, 16, 16, 0, 9, 17, 17, 10, 4, 8};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -163,7 +163,7 @@ TEST_CASE("geometry_decoder with multilinestring") {
 TEST_CASE("geometry_decoder with polygon") {
     const container g = {9, 6, 12, 18, 10, 12, 24, 44, 15};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -186,7 +186,7 @@ TEST_CASE("geometry_decoder with polygon") {
 TEST_CASE("geometry_decoder with polygon with wrong ClosePath count 2") {
     const container g = {9, 6, 12, 18, 10, 12, 24, 44, 23};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -219,7 +219,7 @@ TEST_CASE("geometry_decoder with multipolygon") {
     const container g = {9, 0, 0, 26, 20, 0, 0, 20, 19, 0, 15, 9, 22, 2, 26, 18,
                          0, 0, 18, 17, 0, 15, 9, 4, 13, 26, 0, 8, 8, 0, 0, 7, 15};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -278,7 +278,7 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in x coordin
                            protozero::encode_zigzag32(1)
                          };
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -299,7 +299,7 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in y coordin
                            protozero::encode_zigzag32(-1)
                          };
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -315,7 +315,7 @@ TEST_CASE("geometry_decoder with multipoint with a huge count") {
     const uint32_t huge_value = (1ul << 29u) - 1;
     const container g = {vtzero::detail::command_move_to(huge_value), 10, 10};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -325,7 +325,7 @@ TEST_CASE("geometry_decoder with multipoint with a huge count") {
 TEST_CASE("geometry_decoder with multipoint with not enough points") {
     const container g = {vtzero::detail::command_move_to(2), 10};
 
-    vtzero::detail::geometry_decoder<iterator, 2> decoder{g.cbegin(), g.cend(), 1};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, 1};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 

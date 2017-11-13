@@ -129,6 +129,42 @@ public:
     void linestring_end() {
         ++m_count;
     }
+    
+    // ----------------------------------------------------------------------
+
+    void controlpoints_begin(const uint32_t count) {
+        if (count < 2) {
+            print_error("Not enough points in spline control points");
+        }
+        m_is_first_point = true;
+    }
+
+    void controlpoints_point(const vtzero::point<2> point) {
+        if (m_is_first_point) {
+            m_is_first_point = false;
+        } else {
+            if (point == m_prev_point) {
+                print_error("Duplicate point in controlpoint linestring");
+            }
+        }
+        m_prev_point = point;
+
+        check_point_location(point);
+    }
+
+    void controlpoints_end() {
+        ++m_count;
+    }
+
+    void knots_begin(const uint32_t count) {
+        if (count < 4) {
+            print_error("Not enough knots in spline");
+        }
+    }
+
+    void knots_value(double) {}
+
+    void knots_end() {}
 
     // ----------------------------------------------------------------------
 
