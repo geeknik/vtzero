@@ -25,6 +25,7 @@ set(TEST_SOURCES builder
                  feature
                  geometry
                  geometry_linestring
+                 geometry_spline
                  geometry_point
                  geometry_polygon
                  index

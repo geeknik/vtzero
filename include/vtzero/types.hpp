@@ -388,6 +388,7 @@ namespace vtzero {
     class geometry {
 
         data_view m_data{};
+        data_view m_knots{};
         GeomType m_type = GeomType::UNKNOWN;
 
     public:
@@ -397,13 +398,15 @@ namespace vtzero {
          * geometry encoded according to spec 4.3.
          */
         using const_iterator = protozero::pbf_reader::const_uint32_iterator;
+        using knots_const_iterator = protozero::const_fixed_iterator<double>;
 
         /// Default construct to an invalid value.
         constexpr geometry() noexcept = default;
 
         /// Construct with the given values.
-        constexpr geometry(data_view data, GeomType type) noexcept :
+        constexpr geometry(data_view data, data_view knots, GeomType type) noexcept :
             m_data(data),
+            m_knots(knots),
             m_type(type) {
         }
 
@@ -412,11 +415,16 @@ namespace vtzero {
             return m_data;
         }
 
+        /// The data of this geometry
+        constexpr data_view knots() const noexcept {
+            return m_knots;
+        }
+
         /// The type of this geometry
         constexpr GeomType type() const noexcept {
             return m_type;
         }
-
+        
         /// Return iterator to the beginning of the data.
         const_iterator begin() const noexcept {
             return {m_data.data(), m_data.data() + m_data.size()};
@@ -425,6 +433,14 @@ namespace vtzero {
         /// Return iterator to one past the end of the data.
         const_iterator end() const noexcept {
             return {m_data.data() + m_data.size(), m_data.data() + m_data.size()};
+        }
+
+        knots_const_iterator knots_begin() const noexcept {
+            return knots_const_iterator{ m_knots.data() };
+        }
+
+        knots_const_iterator knots_end() const noexcept {
+            return knots_const_iterator{m_knots.data() + m_knots.size()};
         }
 
     }; // class geometry

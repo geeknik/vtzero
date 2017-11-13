@@ -96,6 +96,12 @@ namespace vtzero {
                         }
                         m_geometry = reader.get_view();
                         break;
+                    case protozero::tag_and_type(detail::pbf_feature::knots, protozero::pbf_wire_type::length_delimited):
+                        if (!m_knots.empty()) {
+                            throw format_exception{"Feature has more than one knots field"};
+                        }
+                        m_knots = reader.get_view();
+                        break;
                     default:
                         reader.skip(); // ignore unknown fields
                 }
@@ -176,7 +182,7 @@ namespace vtzero {
          */
         vtzero::geometry geometry() const noexcept {
             vtzero_assert_in_noexcept_function(valid());
-            return {m_geometry, m_geometry_type};
+            return {m_geometry, m_knots, m_geometry_type};
         }
 
         /**

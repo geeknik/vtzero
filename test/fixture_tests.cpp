@@ -69,6 +69,35 @@ struct linestring_handler {
 
 }; // struct linestring_handler
 
+struct spline_handler {
+
+    std::vector<vtzero::point<2>> cp{};
+    std::vector<double> knots{};
+
+    void controlpoints_begin(uint32_t count) {
+        cp.reserve(count);
+    }
+
+    void controlpoints_point(const vtzero::point<2> point) {
+        cp.push_back(point);
+    }
+
+    void controlpoints_end() const noexcept {
+    }
+    
+    void knots_begin(uint32_t count) {
+        knots.reserve(count);
+    }
+
+    void knots_value(double val) {
+        knots.push_back(val);
+    }
+
+    void knots_end() const noexcept {
+    }
+
+}; // struct spline_handler
+
 struct polygon_handler {
 
     std::vector<std::vector<vtzero::point<2>>> data{};
@@ -93,6 +122,8 @@ struct geom_handler {
 
     std::vector<vtzero::point<2>> point_data{};
     std::vector<std::vector<vtzero::point<2>>> line_data{};
+    std::vector<vtzero::point<2>> control_points{};
+    std::vector<double> knots{};
 
     void points_begin(uint32_t count) {
         point_data.reserve(count);
@@ -115,6 +146,28 @@ struct geom_handler {
     }
 
     void linestring_end() const noexcept {
+    }
+
+    void controlpoints_begin(uint32_t count) {
+        control_points.reserve(count);
+    }
+
+    void controlpoints_point(const vtzero::point<2> pt) {
+        control_points.push_back(pt);
+    }
+       
+    void controlpoints_end() const noexcept {
+    }
+    
+    void knots_begin(uint32_t count) {
+        knots.reserve(count);
+    }
+
+    void knots_value(double val) {
+        knots.push_back(val);
+    }
+       
+    void knots_end() const noexcept {
     }
 
     void ring_begin(uint32_t count) {
