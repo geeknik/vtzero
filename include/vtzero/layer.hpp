@@ -19,8 +19,9 @@ documentation.
 #include "exception.hpp"
 #include "feature.hpp"
 #include "geometry.hpp"
-#include "property_value.hpp"
 #include "types.hpp"
+#include "property_value.hpp"
+#include "property_value_impl.hpp"
 
 #include <protozero/pbf_message.hpp>
 
@@ -81,7 +82,7 @@ namespace vtzero {
                         m_key_table.push_back(reader.get_view());
                         break;
                     case protozero::tag_and_type(detail::pbf_layer::values, protozero::pbf_wire_type::length_delimited):
-                        m_value_table.emplace_back(reader.get_view());
+                        m_value_table.emplace_back(reader.get_view(), this);
                         break;
                     default:
                         reader.skip(); // ignore unknown fields
@@ -474,10 +475,21 @@ namespace vtzero {
         return {ki, vi};
     }
 
-    template <typename TFunc>
-    bool feature::for_each_property(TFunc&& func) const {
-        vtzero_assert(valid());
+    inline property property_map::next() {
+        const auto idxs = next_indexes();
+        return idxs.valid() ? property{m_layer->key(idxs.key()),
+                                       m_layer->value(idxs.value())}
+                            : property{};
+    }
 
+    inline property_value property_list::next() {
+        const auto idx = next_index();
+        return idx.valid() ? m_layer->value(idx.value())
+                            : property_value{};
+    }
+
+    template <typename TFunc>
+    bool property_map::for_each_property(TFunc&& func) const {
         for (auto it = m_properties.begin(); it != m_properties.end();) {
             const uint32_t ki = *it++;
             if (!index_value{ki}.valid()) {
@@ -494,7 +506,17 @@ namespace vtzero {
                 return false;
             }
         }
+        return true;
+    }
 
+    template <typename TFunc>
+    bool property_list::for_each_value(TFunc&& func) const {
+        for (auto it = m_properties.begin(); it != m_properties.end();) {
+            const uint32_t vi = *it++;
+            if (!std::forward<TFunc>(func)(m_layer->value(vi))) {
+                return false;
+            }
+        }
         return true;
     }
 

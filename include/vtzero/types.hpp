@@ -10,6 +10,8 @@ documentation.
 
 *****************************************************************************/
 
+#include "exception.hpp"
+
 #include <protozero/pbf_reader.hpp>
 
 #include <cassert>
@@ -34,6 +36,10 @@ documentation.
  * @brief All parts of the vtzero header-only library are in this namespace.
  */
 namespace vtzero {
+
+    class layer;
+    class property;
+    class property_value;
 
     /**
      * Using data_view class from protozero. See the protozero documentation
@@ -281,7 +287,7 @@ namespace vtzero {
         }
 
     }; // struct bool_value_type
-
+    
     /**
      * This class wraps the uint32_t used for looking up keys/values in the
      * key/values tables.
@@ -444,6 +450,176 @@ namespace vtzero {
         }
 
     }; // class geometry
+    
+    class property_map {
+
+        using uint32_iterator = protozero::pbf_reader::const_uint32_iterator;
+        using uint32_iterator_range = protozero::iterator_range<uint32_iterator>;
+
+        uint32_iterator_range m_properties{};
+        uint32_iterator m_property_iterator {};
+        const layer* m_layer = nullptr;
+        std::size_t m_num_properties = 0;
+        
+    public:
+        
+        property_map() = default;
+        
+        property_map(const layer* layer) noexcept :
+            m_layer(layer) {
+        }
+        
+        property_map(const layer* layer, uint32_iterator_range properties) :
+            m_properties(properties),
+            m_property_iterator(m_properties.begin()),
+            m_layer(layer),
+            m_num_properties(0) {
+            
+            set_size();
+        }
+
+        void set_size() {
+            const auto size = m_properties.size();
+            if (size % 2 != 0) {
+                throw format_exception{"unpaired property key/value indexes (spec 4.4)"};
+            }
+            m_num_properties = size / 2;
+        }
+
+        void initialize(uint32_iterator_range properties) {
+            if (m_properties.begin() != uint32_iterator{}) {
+                throw format_exception{"Feature has more than one tags field"};
+            }
+            m_properties = properties;
+            m_property_iterator = m_properties.begin();
+            
+            set_size();
+        }
+        
+        bool empty() const noexcept {
+            return m_num_properties == 0;
+        }
+
+        std::size_t size() const noexcept {
+            return m_num_properties;
+        }
+        
+        property next();
+        
+        index_value_pair next_indexes() {
+            if (m_property_iterator == m_properties.end()) {
+                return {};
+            }
+            const auto ki = *m_property_iterator++;
+            const auto vi = *m_property_iterator++;
+            return {ki, vi};
+        }
+        
+        void reset() noexcept {
+            m_property_iterator = m_properties.begin();
+        }
+        
+        template <typename TFunc>
+        bool for_each_property(TFunc&& func) const;
+           
+    }; // class property_map
+    
+    class property_list {
+
+        using uint32_iterator = protozero::pbf_reader::const_uint32_iterator;
+        using uint32_iterator_range = protozero::iterator_range<uint32_iterator>;
+
+        uint32_iterator_range m_properties{};
+        uint32_iterator m_property_iterator {};
+        const layer* m_layer = nullptr;
+        std::size_t m_num_properties = 0;
+        
+    public:
+        
+        property_list() = default;
+        
+        property_list(const layer* layer, uint32_iterator_range properties) :
+            m_properties(properties),
+            m_property_iterator(m_properties.begin()),
+            m_layer(layer),
+            m_num_properties(m_properties.size()) {
+        }
+        
+        bool empty() const noexcept {
+            return m_num_properties == 0;
+        }
+
+        std::size_t size() const noexcept {
+            return m_num_properties;
+        }
+        
+        property_value next();
+        
+        index_value next_index() {
+            if (m_property_iterator == m_properties.end()) {
+                return {};
+            }
+            const auto vi = *m_property_iterator++;
+            return {vi};
+        }
+        
+        void reset() noexcept {
+            m_property_iterator = m_properties.begin();
+        }
+        
+        template <typename TFunc>
+        bool for_each_value(TFunc&& func) const;
+           
+    }; // class property_list
+    
+    /// property value type holding a reference to a map
+    struct map_value_type {
+
+        /// the underlying storage type
+        using type = property_map;
+
+        /// @cond internal
+        constexpr static const property_value_type pvtype = property_value_type::map_value;
+        constexpr static const protozero::pbf_wire_type wire_type = protozero::pbf_wire_type::length_delimited;
+        /// @endcond
+
+        /// value
+        property_map value{};
+
+        /// Construct empty string_value_type
+        map_value_type() = default;
+
+        /// Construct string_value_type
+        explicit constexpr map_value_type(property_map v) :
+            value(v) {
+        }
+
+    }; // struct map_value_type
+
+    /// property value type holding a reference to a list
+    struct list_value_type {
+
+        /// the underlying storage type
+        using type = property_list;
+
+        /// @cond internal
+        constexpr static const property_value_type pvtype = property_value_type::list_value;
+        constexpr static const protozero::pbf_wire_type wire_type = protozero::pbf_wire_type::length_delimited;
+        /// @endcond
+
+        /// value
+        property_list value{};
+
+        /// Construct empty string_value_type
+        list_value_type() = default;
+
+        /// Construct string_value_type
+        explicit constexpr list_value_type(property_list v) :
+            value(v) {
+        }
+
+    }; // struct list_value_type
+
 
 } // namespace vtzero
 
