@@ -30,20 +30,13 @@ documentation.
 
 namespace vtzero {
 
-    class layer;
-
     /**
      * A feature according to spec 4.2.
      */
     class feature {
 
-        using uint32_it_range = protozero::iterator_range<protozero::pbf_reader::const_uint32_iterator>;
-
-        const layer* m_layer = nullptr;
         uint64_t m_id = 0; // defaults to 0, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L32
-        uint32_it_range m_properties{};
-        protozero::pbf_reader::const_uint32_iterator m_property_iterator;
-        std::size_t m_num_properties = 0;
+        property_map m_properties {};
         data_view m_geometry{};
         data_view m_knots{};
         GeomType m_geometry_type = GeomType::UNKNOWN; // defaults to UNKNOWN, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L41
@@ -62,7 +55,7 @@ namespace vtzero {
          * @throws format_exception if the layer data is ill-formed.
          */
         feature(const layer* layer, const data_view data) :
-            m_layer(layer) {
+            m_properties(layer) {
             vtzero_assert(layer);
             vtzero_assert(data.data());
 
@@ -75,11 +68,7 @@ namespace vtzero {
                         m_has_id = true;
                         break;
                     case protozero::tag_and_type(detail::pbf_feature::tags, protozero::pbf_wire_type::length_delimited):
-                        if (m_properties.begin() != protozero::pbf_reader::const_uint32_iterator{}) {
-                            throw format_exception{"Feature has more than one tags field"};
-                        }
-                        m_properties = reader.get_packed_uint32();
-                        m_property_iterator = m_properties.begin();
+                        m_properties.initialize(reader.get_packed_uint32());
                         break;
                     case protozero::tag_and_type(detail::pbf_feature::type, protozero::pbf_wire_type::varint): {
                             const auto type = reader.get_enum();
@@ -111,12 +100,6 @@ namespace vtzero {
             if (m_geometry.empty()) {
                 throw format_exception{"Missing geometry field in feature (spec 4.2)"};
             }
-
-            const auto size = m_properties.size();
-            if (size % 2 != 0) {
-                throw format_exception{"unpaired property key/value indexes (spec 4.4)"};
-            }
-            m_num_properties = size / 2;
         }
 
         /**
@@ -193,7 +176,7 @@ namespace vtzero {
          * Always returns true for invalid features.
          */
         bool empty() const noexcept {
-            return m_num_properties == 0;
+            return m_properties.empty();
         }
 
         /**
@@ -204,7 +187,7 @@ namespace vtzero {
          * Always returns 0 for invalid features.
          */
         std::size_t num_properties() const noexcept {
-            return m_num_properties;
+            return m_properties.size();
         }
 
         /**
@@ -218,7 +201,9 @@ namespace vtzero {
          * @throws any protozero exception if the protobuf encoding is invalid.
          * @pre @code valid() @endcode
          */
-        property next_property();
+        property next_property() {
+            return m_properties.next();
+        }
 
         /**
          * Get the indexes into the key/value table for the next property in
@@ -233,13 +218,7 @@ namespace vtzero {
          * @pre @code valid() @endcode
          */
         index_value_pair next_property_indexes() {
-            vtzero_assert(valid());
-            if (m_property_iterator == m_properties.end()) {
-                return {};
-            }
-            const auto ki = *m_property_iterator++;
-            const auto vi = *m_property_iterator++;
-            return {ki, vi};
+            return m_properties.next_indexes();
         }
 
         /**
@@ -253,7 +232,7 @@ namespace vtzero {
          */
         void reset_property() noexcept {
             vtzero_assert_in_noexcept_function(valid());
-            m_property_iterator = m_properties.begin();
+            m_properties.reset();
         }
 
         /**
@@ -267,7 +246,9 @@ namespace vtzero {
          * @pre @code valid() @endcode
          */
         template <typename TFunc>
-        bool for_each_property(TFunc&& func) const;
+        bool for_each_property(TFunc&& func) const {
+            return m_properties.for_each_property(func);
+        }
 
     }; // class feature
 
@@ -289,14 +270,15 @@ namespace vtzero {
      * @returns An object of type TMap with all the properties.
      * @pre @code feature.valid() @endcode
      */
-    template <typename TMap,
-              typename TKey = typename TMap::key_type,
-              typename TValue = typename TMap::mapped_type>
+    template <typename TVariant, 
+              typename TMapping = property_value_mapping,
+              typename TMap = typename TMapping::template map_type<typename TMapping::string_type, TVariant>>
     TMap create_properties_map(const vtzero::feature& feature) {
+        using TKey = typename TMap::key_type;
         TMap map;
 
         feature.for_each_property([&](property&& p) {
-            map.emplace(TKey(p.key()), convert_property_value<TValue>(p.value()));
+            map.emplace(TKey(p.key()), convert_property_value<TVariant, TMapping>(p.value()));
             return true;
         });
 

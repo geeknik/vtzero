@@ -25,6 +25,7 @@ documentation.
 #include <cstdint>
 #include <cstring>
 #include <utility>
+#include <unordered_map>
 
 namespace vtzero {
 
@@ -36,9 +37,10 @@ namespace vtzero {
     class property_value {
 
         data_view m_value{};
+        const layer* m_layer = nullptr;
 
         static bool check_tag_and_type(protozero::pbf_tag_type tag, protozero::pbf_wire_type type) noexcept {
-            static constexpr const std::array<protozero::pbf_wire_type, 7> types{{
+            static constexpr const std::array<protozero::pbf_wire_type, 9> types{{
                 string_value_type::wire_type,
                 float_value_type::wire_type,
                 double_value_type::wire_type,
@@ -46,6 +48,8 @@ namespace vtzero {
                 uint_value_type::wire_type,
                 sint_value_type::wire_type,
                 bool_value_type::wire_type,
+                map_value_type::wire_type,
+                list_value_type::wire_type,
             }};
 
             if (tag < 1 || tag > types.size()) {
@@ -55,32 +59,40 @@ namespace vtzero {
             return types[tag - 1] == type; // NOLINT clang-tidy: cppcoreguidelines-pro-bounds-constant-array-index
         }
 
-        static data_view get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, string_value_type /* dummy */) {
+        data_view get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, string_value_type /* dummy */) const {
             return value_message.get_view();
         }
 
-        static float get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, float_value_type /* dummy */) {
+        float get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, float_value_type /* dummy */) const {
             return value_message.get_float();
         }
 
-        static double get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, double_value_type /* dummy */) {
+        double get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, double_value_type /* dummy */) const {
             return value_message.get_double();
         }
 
-        static int64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, int_value_type /* dummy */) {
+        int64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, int_value_type /* dummy */) const {
             return value_message.get_int64();
         }
 
-        static uint64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, uint_value_type /* dummy */) {
+        uint64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, uint_value_type /* dummy */) const {
             return value_message.get_uint64();
         }
 
-        static int64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, sint_value_type /* dummy */) {
+        int64_t get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, sint_value_type /* dummy */) const {
             return value_message.get_sint64();
         }
 
-        static bool get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, bool_value_type /* dummy */) {
+        bool get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, bool_value_type /* dummy */) const {
             return value_message.get_bool();
+        }
+
+        property_map get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, map_value_type /* dummy */) const {
+            return property_map{ m_layer, value_message.get_packed_uint32() };
+        }
+        
+        property_list get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, list_value_type /* dummy */) const {
+            return property_list{ m_layer, value_message.get_packed_uint32() };
         }
 
         template <typename T>
@@ -110,10 +122,18 @@ namespace vtzero {
         constexpr property_value() noexcept = default;
 
         /**
-         * Create a (valid) property_value from a data_view.
+         * Create a (valid) property_value from a data_view and layer
          */
         explicit constexpr property_value(const data_view value) noexcept :
             m_value(value) {
+        }
+
+        /**
+         * Create a (valid) property_value from a data_view and layer
+         */
+        explicit constexpr property_value(const data_view value, const layer* layer) noexcept :
+            m_value(value),
+            m_layer(layer) {
         }
 
         /**
@@ -122,6 +142,14 @@ namespace vtzero {
          */
         constexpr bool valid() const noexcept {
             return m_value.data() != nullptr;
+        }
+
+        /**
+         * Is this a valid property_value? Properties are valid if they were
+         * constructed using the non-default constructor.
+         */
+        explicit constexpr operator bool() const noexcept {
+            return valid();
         }
 
         /**
@@ -226,6 +254,28 @@ namespace vtzero {
         bool bool_value() const {
             return get_value<bool_value_type>();
         }
+        
+        /**
+         * Get map value of this object.
+         *
+         * @pre @code valid() @endcode
+         * @throws type_exception if the type of this property value is
+         *                        something other than map.
+         */
+        property_map map_value() const {
+            return get_value<map_value_type>();
+        }
+        
+        /**
+         * Get list value of this object.
+         *
+         * @pre @code valid() @endcode
+         * @throws type_exception if the type of this property value is
+         *                        something other than list.
+         */
+        property_list list_value() const {
+            return get_value<list_value_type>();
+        }
 
     }; // class property_value
 
@@ -282,10 +332,61 @@ namespace vtzero {
                 return std::forward<V>(visitor)(value.uint_value());
             case property_value_type::sint_value:
                 return std::forward<V>(visitor)(value.sint_value());
+            case property_value_type::map_value:
+                return std::forward<V>(visitor)(value.map_value());
+            case property_value_type::list_value:
+                return std::forward<V>(visitor)(value.map_value());
             default: // case property_value_type::bool_value:
                 return std::forward<V>(visitor)(value.bool_value());
         }
     }
+    
+    /**
+     * Default mapping between the different types of a property_value to
+     * the types needed for a variant. Derive from this class, overwrite
+     * the types you want and use that class as second template parameter
+     * in the convert_property_value class.
+     */
+    struct property_value_mapping {
+
+        /// mapping for string type
+        using string_type = std::string;
+
+        /// mapping for float type
+        using float_type = float;
+
+        /// mapping for double type
+        using double_type = double;
+
+        /// mapping for int type
+        using int_type = int64_t;
+
+        /// mapping for uint type
+        using uint_type = uint64_t;
+
+        /// mapping for bool type
+        using bool_type = bool;
+
+        /// mapping for map
+        template <typename Key, typename Value>
+        using map_type = std::unordered_map<Key, Value>;
+
+        /// mapping for list
+        template <typename Value>
+        using list_type = std::vector<Value>;
+
+    }; // struct property_value_mapping
+    
+    template <typename TVariant, 
+              typename TMapping = property_value_mapping,
+              typename TMap = typename TMapping::template map_type<typename TMapping::string_type, TVariant>>
+    TMap create_properties_map(const vtzero::property_map & pm);
+    
+    template <typename TVariant,
+              typename TMapping = property_value_mapping,
+              typename TList = typename TMapping::template list_type<TVariant>>
+    TList create_properties_list(const vtzero::property_list& pl);
+
 
     namespace detail {
 
@@ -315,38 +416,19 @@ namespace vtzero {
             TVariant operator()(bool value) const {
                 return TVariant(typename TMapping::bool_type(value));
             }
+            
+            TVariant operator()(property_map const& value) const {
+                return TVariant(create_properties_map<TVariant, TMapping>(value));
+            }
+            
+            TVariant operator()(property_list const& value) const {
+                return TVariant(create_properties_list<TVariant, TMapping>(value));
+            }
 
         }; // struct convert_visitor
 
     } // namespace detail
 
-    /**
-     * Default mapping between the different types of a property_value to
-     * the types needed for a variant. Derive from this class, overwrite
-     * the types you want and use that class as second template parameter
-     * in the convert_property_value class.
-     */
-    struct property_value_mapping {
-
-        /// mapping for string type
-        using string_type = std::string;
-
-        /// mapping for float type
-        using float_type = float;
-
-        /// mapping for double type
-        using double_type = double;
-
-        /// mapping for int type
-        using int_type = int64_t;
-
-        /// mapping for uint type
-        using uint_type = uint64_t;
-
-        /// mapping for bool type
-        using bool_type = bool;
-
-    }; // struct property_value_mapping
 
     /**
      * Convert a property_value to a different (usually variant-based)
@@ -392,7 +474,7 @@ namespace vtzero {
     TVariant convert_property_value(const property_value value) {
         return apply_visitor(detail::convert_visitor<TVariant, TMapping>{}, value);
     }
-
+    
 } // namespace vtzero
 
 #endif // VTZERO_PROPERTY_VALUE_HPP

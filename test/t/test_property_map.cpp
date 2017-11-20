@@ -5,7 +5,16 @@
 
 #ifdef VTZERO_TEST_WITH_VARIANT
 # include <boost/variant.hpp>
-using variant_type = boost::variant<std::string, float, double, int64_t, uint64_t, bool>;
+typedef boost::make_recursive_variant<
+        std::string,
+        float,
+        double,
+        int64_t,
+        uint64_t,
+        bool,
+        std::vector< boost::recursive_variant_ >,
+        std::unordered_map<std::string, boost::recursive_variant_>
+    >::type variant_type;
 #endif
 
 #include <map>
@@ -36,23 +45,13 @@ TEST_CASE("property map") {
     REQUIRE(feature.num_properties() == 3);
 
 #ifdef VTZERO_TEST_WITH_VARIANT
-    SECTION("std::map") {
-        using prop_map_type = std::map<std::string, variant_type>;
-        auto map = vtzero::create_properties_map<prop_map_type>(feature);
-
-        REQUIRE(map.size() == 3);
-        REQUIRE(boost::get<std::string>(map["foo"]) == "bar");
-        REQUIRE(boost::get<std::string>(map["x"]) == "y");
-        REQUIRE(boost::get<std::string>(map["abc"]) == "def");
-    }
     SECTION("std::unordered_map") {
-        using prop_map_type = std::unordered_map<std::string, variant_type>;
-        auto map = vtzero::create_properties_map<prop_map_type>(feature);
+        auto map = vtzero::create_properties_map<variant_type>(feature);
 
         REQUIRE(map.size() == 3);
-        REQUIRE(boost::get<std::string>(map["foo"]) == "bar");
-        REQUIRE(boost::get<std::string>(map["x"]) == "y");
-        REQUIRE(boost::get<std::string>(map["abc"]) == "def");
+        boost::apply_visitor(prop_visitor{"bar"}, map["foo"]);
+        boost::apply_visitor(prop_visitor{"y"}, map["x"]);
+        boost::apply_visitor(prop_visitor{"def"}, map["abc"]);
     }
 #endif
 }

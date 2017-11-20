@@ -3,6 +3,11 @@
 
 #include <catch.hpp>
 
+#ifdef VTZERO_TEST_WITH_VARIANT
+#include <boost/variant.hpp>
+#include <unordered_map>
+#endif
+
 #include <stdexcept>
 
 // Define vtzero_assert() to throw this error. This allows the tests to
@@ -33,5 +38,35 @@ inline vtzero::point<2> create_vtzero_point(mypoint p) noexcept {
     return {static_cast<int32_t>(p.p1),
             static_cast<int32_t>(p.p2)};
 }
+
+#ifdef VTZERO_TEST_WITH_VARIANT
+typedef boost::make_recursive_variant<
+        std::string,
+        float,
+        double,
+        int64_t,
+        uint64_t,
+        bool,
+        std::vector< boost::recursive_variant_ >,
+        std::unordered_map<std::string, boost::recursive_variant_>
+    >::type variant_type;
+
+class prop_visitor : public boost::static_visitor<> {
+    std::string expected;
+
+public:
+    
+    prop_visitor(std::string const& str) : expected(str) {}
+
+    template <typename T>
+    void operator() (T const&) const {
+        REQUIRE(false);
+    }
+
+    void operator() (std::string const& str) const {
+        REQUIRE(str == expected);
+    }
+};
+#endif
 
 #endif // TEST_HPP

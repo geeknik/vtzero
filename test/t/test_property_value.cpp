@@ -4,12 +4,11 @@
 #include <vtzero/encoded_property_value.hpp>
 #include <vtzero/property.hpp>
 #include <vtzero/property_value.hpp>
+#include <vtzero/property_value_impl.hpp>
+#include <vtzero/layer.hpp>
 #include <vtzero/types.hpp>
 
 #ifdef VTZERO_TEST_WITH_VARIANT
-# include <boost/variant.hpp>
-using variant_type = boost::variant<std::string, float, double, int64_t, uint64_t, bool>;
-
 struct variant_mapping : vtzero::property_value_mapping {
     using float_type = int64_t;
     using double_type = int64_t;
@@ -47,17 +46,55 @@ struct visitor_test_int {
 
 };
 
+struct string_conv;
+
+namespace detail {
+
+    template <typename T>
+    std::string to_string(T value) {
+        return std::to_string(value);
+    }
+
+    std::string to_string(std::string value) {
+        return value;
+    }
+
+    std::string to_string(std::vector<variant_type> const& value) {
+        return "variant_vector:" + std::to_string(value.size());
+    }
+    
+    std::string to_string(std::unordered_map<std::string, variant_type> const& value) {
+        return "variant_map:" + std::to_string(value.size());
+    }
+    
+    std::string to_string(vtzero::property_map const& value) {
+        return "property_map:" + std::to_string(value.size());
+    }
+    
+    std::string to_string(vtzero::property_list const& value) {
+        return "property_list:" + std::to_string(value.size());
+    }
+
+    std::string to_string(vtzero::data_view value) {
+        return std::string{value.data(), value.size()};
+    }
+    
+    std::string to_string(std::vector<string_conv> const& value) {
+        return "variant_vector:" + std::to_string(value.size());
+    }
+
+    std::string to_string(std::unordered_map<std::string, string_conv> const& value) {
+        return "variant_map:" + std::to_string(value.size());
+    }
+
+} // end ns detail
+
 struct visitor_test_to_string {
 
     template <typename T>
     std::string operator()(T value) {
-        return std::to_string(value);
+        return detail::to_string(value);
     }
-
-    std::string operator()(vtzero::data_view value) {
-        return std::string{value.data(), value.size()};
-    }
-
 };
 
 struct string_conv {
@@ -66,7 +103,7 @@ struct string_conv {
 
     template <typename T>
     explicit string_conv(T value) :
-        s(std::to_string(value)) {
+        s(detail::to_string(value)) {
     }
 
     explicit operator std::string() {
@@ -116,14 +153,14 @@ TEST_CASE("string value") {
     const auto str = vtzero::apply_visitor(visitor_test_to_string{}, pv);
     REQUIRE(str == "foo");
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "foo");
 
 #ifdef VTZERO_TEST_WITH_VARIANT
     const auto vari = vtzero::convert_property_value<variant_type>(pv);
-    REQUIRE(boost::get<std::string>(vari) == "foo");
+    boost::apply_visitor(prop_visitor{"foo"}, vari);
     const auto conv = vtzero::convert_property_value<variant_type, variant_mapping>(pv);
-    REQUIRE(boost::get<std::string>(conv) == "foo");
+    boost::apply_visitor(prop_visitor{"foo"}, conv);
 #endif
 }
 
@@ -139,7 +176,7 @@ TEST_CASE("float value") {
     const auto result = vtzero::apply_visitor(visitor_test_int{}, pv);
     REQUIRE(result == 1);
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "1.200000");
 
 #ifdef VTZERO_TEST_WITH_VARIANT
@@ -158,7 +195,7 @@ TEST_CASE("double value") {
     const auto result = vtzero::apply_visitor(visitor_test_int{}, pv);
     REQUIRE(result == 1);
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "3.400000");
 }
 
@@ -170,7 +207,7 @@ TEST_CASE("int value") {
     const auto str = vtzero::apply_visitor(visitor_test_to_string{}, pv);
     REQUIRE(str == "42");
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "42");
 }
 
@@ -182,7 +219,7 @@ TEST_CASE("uint value") {
     const auto str = vtzero::apply_visitor(visitor_test_to_string{}, pv);
     REQUIRE(str == "99");
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "99");
 }
 
@@ -194,7 +231,7 @@ TEST_CASE("sint value") {
     const auto str = vtzero::apply_visitor(visitor_test_to_string{}, pv);
     REQUIRE(str == "42");
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "42");
 }
 
@@ -206,7 +243,7 @@ TEST_CASE("bool value") {
     const auto str = vtzero::apply_visitor(visitor_test_to_string{}, pv);
     REQUIRE(str == "1");
 
-    const std::string cs = vtzero::convert_property_value<std::string, string_mapping>(pv);
+    const std::string cs = std::string(vtzero::convert_property_value<string_conv, string_mapping>(pv));
     REQUIRE(cs == "1");
 }
 
