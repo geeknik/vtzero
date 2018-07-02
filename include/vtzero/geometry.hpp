@@ -49,7 +49,7 @@ namespace vtzero {
             y(y_) {
         }
     }; // struct point
-    
+
     template <>
     struct point<3> {
 
@@ -101,7 +101,7 @@ namespace vtzero {
     inline constexpr bool operator==(const point<2> a, const point<2> b) noexcept {
         return a.x == b.x && a.y == b.y;
     }
-    
+
     inline constexpr bool operator==(const point<3> a, const point<3> b) noexcept {
         return a.x == b.x && a.y == b.y && a.z == b.z;
     }
@@ -149,7 +149,7 @@ namespace vtzero {
         inline constexpr uint32_t max_command_count() noexcept {
             return get_command_count(std::numeric_limits<uint32_t>::max());
         }
-        
+
         template <int Dimensions>
         inline constexpr int64_t det(const point<Dimensions> a, const point<Dimensions> b) noexcept {
             return static_cast<int64_t>(a.x) * static_cast<int64_t>(b.y) -
@@ -178,7 +178,7 @@ namespace vtzero {
             }
 
         };
-        
+
         template <typename TIterator>
         void move_cursor(TIterator & itr, point<2> & cursor) {
             int64_t x = protozero::decode_zigzag32(*itr++);
@@ -188,7 +188,7 @@ namespace vtzero {
             cursor.x = static_cast<int32_t>(x);
             cursor.y = static_cast<int32_t>(y);
         }
-        
+
         template <typename TIterator>
         void move_cursor(TIterator & itr, point<3> & cursor) {
             int64_t x = protozero::decode_zigzag32(*itr++);
@@ -201,7 +201,7 @@ namespace vtzero {
             cursor.y = static_cast<int32_t>(y);
             cursor.z = static_cast<int32_t>(z);
         }
-        
+
         /**
          * Decode a geometry as specified in spec 4.3 from a sequence of 32 bit
          * unsigned integers. This templated base class can be instantiated
@@ -222,7 +222,7 @@ namespace vtzero {
             iterator_type m_end;
             knots_iterator_type m_knots_it;
             knots_iterator_type m_knots_end;
-    
+
             point_type m_cursor;
 
             // maximum value for m_count before we throw an exception
@@ -238,14 +238,14 @@ namespace vtzero {
              * next_command() is called.
              */
             uint32_t m_count = 0;
-            
+
 
         public:
 
-            geometry_decoder(iterator_type begin, 
-                             iterator_type end, 
-                             knots_iterator_type knots_begin, 
-                             knots_iterator_type knots_end, 
+            geometry_decoder(iterator_type begin,
+                             iterator_type end,
+                             knots_iterator_type knots_begin,
+                             knots_iterator_type knots_end,
                              std::size_t max) :
                 m_it(begin),
                 m_end(end),
@@ -399,11 +399,11 @@ namespace vtzero {
                         std::forward<TGeomHandler>(geom_handler).controlpoints_point(next_point());
                     }
                     std::forward<TGeomHandler>(geom_handler).controlpoints_end();
-                    
+
                     auto d = std::distance(m_knots_it, m_knots_end);
                     uint32_t n = d > 0 ? static_cast<uint32_t>(d) : 0;
                     std::forward<TGeomHandler>(geom_handler).knots_begin(n);
-                    
+
                     for (; m_knots_it != m_knots_end; ++m_knots_it) {
                         std::forward<TGeomHandler>(geom_handler).knots_value(*m_knots_it);
                     }
@@ -411,11 +411,11 @@ namespace vtzero {
                     std::forward<TGeomHandler>(geom_handler).knots_end();
 
                 }
-                
+
                 if (!done()) {
                     throw geometry_exception{"additional data after end of geometry (spec 4.3.4.2)"};
                 }
-                
+
                 return detail::get_result<TGeomHandler>{}(std::forward<TGeomHandler>(geom_handler));
             }
 
@@ -481,12 +481,12 @@ namespace vtzero {
     typename detail::get_result<TGeomHandler>::type decode_point_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POINT);
         detail::geometry_decoder<decltype(geometry.begin()),
-                                 decltype(geometry.knots_begin()), 
+                                 decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
-                                     geometry.begin(), 
-                                     geometry.end(), 
-                                     geometry.knots_begin(), 
-                                     geometry.knots_end(), 
+                                     geometry.begin(),
+                                     geometry.end(),
+                                     geometry.knots_begin(),
+                                     geometry.knots_end(),
                                      geometry.data().size() / 2
                                  };
         return decoder.decode_point(std::forward<TGeomHandler>(geom_handler));
@@ -507,17 +507,17 @@ namespace vtzero {
     typename detail::get_result<TGeomHandler>::type decode_linestring_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::LINESTRING);
         detail::geometry_decoder<decltype(geometry.begin()),
-                                 decltype(geometry.knots_begin()), 
+                                 decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
-                                     geometry.begin(), 
-                                     geometry.end(), 
-                                     geometry.knots_begin(), 
-                                     geometry.knots_end(), 
+                                     geometry.begin(),
+                                     geometry.end(),
+                                     geometry.knots_begin(),
+                                     geometry.knots_end(),
                                      geometry.data().size() / 2
                                  };
         return decoder.decode_linestring(std::forward<TGeomHandler>(geom_handler));
     }
-    
+
     /**
      * Decode a spline geometry.
      *
@@ -533,12 +533,12 @@ namespace vtzero {
     typename detail::get_result<TGeomHandler>::type decode_spline_geometry(const geometry geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::LINESTRING);
         detail::geometry_decoder<decltype(geometry.begin()),
-                                 decltype(geometry.knots_begin()), 
+                                 decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
-                                     geometry.begin(), 
-                                     geometry.end(), 
-                                     geometry.knots_begin(), 
-                                     geometry.knots_end(), 
+                                     geometry.begin(),
+                                     geometry.end(),
+                                     geometry.knots_begin(),
+                                     geometry.knots_end(),
                                      geometry.data().size() / 2
                                  };
         return decoder.decode_spline(std::forward<TGeomHandler>(geom_handler));
@@ -559,12 +559,12 @@ namespace vtzero {
     typename detail::get_result<TGeomHandler>::type decode_polygon_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         vtzero_assert(geometry.type() == GeomType::POLYGON);
         detail::geometry_decoder<decltype(geometry.begin()),
-                                 decltype(geometry.knots_begin()), 
+                                 decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
-                                     geometry.begin(), 
-                                     geometry.end(), 
-                                     geometry.knots_begin(), 
-                                     geometry.knots_end(), 
+                                     geometry.begin(),
+                                     geometry.end(),
+                                     geometry.knots_begin(),
+                                     geometry.knots_end(),
                                      geometry.data().size() / 2
                                  };
         return decoder.decode_polygon(std::forward<TGeomHandler>(geom_handler));
@@ -584,12 +584,12 @@ namespace vtzero {
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_geometry(const geometry& geometry, TGeomHandler&& geom_handler) {
         detail::geometry_decoder<decltype(geometry.begin()),
-                                 decltype(geometry.knots_begin()), 
+                                 decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
-                                     geometry.begin(), 
-                                     geometry.end(), 
-                                     geometry.knots_begin(), 
-                                     geometry.knots_end(), 
+                                     geometry.begin(),
+                                     geometry.end(),
+                                     geometry.knots_begin(),
+                                     geometry.knots_end(),
                                      geometry.data().size() / 2
                                  };
         switch (geometry.type()) {

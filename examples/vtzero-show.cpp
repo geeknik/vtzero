@@ -56,7 +56,7 @@ public:
         output += ")\n";
         std::cout << output;
     }
-    
+
     void controlpoints_begin(const uint32_t count) {
         output = "      SPLINE[count=";
         output += std::to_string(count);
@@ -69,7 +69,7 @@ public:
         output += std::to_string(point.y);
         output += ',';
     }
-    
+
     void controlpoints_end() {
         if (output.empty()) {
             return;
@@ -90,7 +90,7 @@ public:
         output += std::to_string(val);
         output += ',';
     }
-    
+
     void knots_end() {
         if (output.empty()) {
             return;
@@ -153,11 +153,11 @@ struct print_value {
     void operator()(const vtzero::data_view value) const {
         std::cout << '"' << value << '"';
     }
-    
+
     void operator()(const vtzero::property_map value) const {
         std::cout << "\"property_map - size: " << value.size() << '"';
     }
-    
+
     void operator()(const vtzero::property_list value) const {
         std::cout << "\"property_list - size: " << value.size() << '"';
     }

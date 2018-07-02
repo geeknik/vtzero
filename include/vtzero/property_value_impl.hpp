@@ -4,8 +4,8 @@
 #include "types.hpp"
 
 namespace vtzero {
-    
-    template <typename TVariant, 
+
+    template <typename TVariant,
               typename TMapping,
               typename TMap>
     TMap create_properties_map(const vtzero::property_map & pm) {
@@ -19,7 +19,7 @@ namespace vtzero {
 
         return map;
     }
-    
+
     template <typename TVariant,
               typename TMapping,
               typename TList>

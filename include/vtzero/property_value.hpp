@@ -91,7 +91,7 @@ namespace vtzero {
         property_map get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, map_value_type /* dummy */) const {
             return property_map{ m_layer, value_message.get_packed_uint32() };
         }
-        
+
         property_list get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, list_value_type /* dummy */) const {
             return property_list{ m_layer, value_message.get_packed_uint32() };
         }
@@ -255,7 +255,7 @@ namespace vtzero {
         bool bool_value() const {
             return get_value<bool_value_type>();
         }
-        
+
         /**
          * Get map value of this object.
          *
@@ -266,7 +266,7 @@ namespace vtzero {
         property_map map_value() const {
             return get_value<map_value_type>();
         }
-        
+
         /**
          * Get list value of this object.
          *
@@ -341,7 +341,7 @@ namespace vtzero {
                 return std::forward<V>(visitor)(value.bool_value());
         }
     }
-    
+
     /**
      * Default mapping between the different types of a property_value to
      * the types needed for a variant. Derive from this class, overwrite
@@ -377,12 +377,12 @@ namespace vtzero {
         using list_type = std::vector<Value>;
 
     }; // struct property_value_mapping
-    
-    template <typename TVariant, 
+
+    template <typename TVariant,
               typename TMapping = property_value_mapping,
               typename TMap = typename TMapping::template map_type<typename TMapping::string_type, TVariant>>
     TMap create_properties_map(const vtzero::property_map & pm);
-    
+
     template <typename TVariant,
               typename TMapping = property_value_mapping,
               typename TList = typename TMapping::template list_type<TVariant>>
@@ -417,11 +417,11 @@ namespace vtzero {
             TVariant operator()(bool value) const {
                 return TVariant(typename TMapping::bool_type(value));
             }
-            
+
             TVariant operator()(property_map const& value) const {
                 return TVariant(create_properties_map<TVariant, TMapping>(value));
             }
-            
+
             TVariant operator()(property_list const& value) const {
                 return TVariant(create_properties_list<TVariant, TMapping>(value));
             }
@@ -475,7 +475,7 @@ namespace vtzero {
     TVariant convert_property_value(const property_value value) {
         return apply_visitor(detail::convert_visitor<TVariant, TMapping>{}, value);
     }
-    
+
 } // namespace vtzero
 
 #endif // VTZERO_PROPERTY_VALUE_HPP

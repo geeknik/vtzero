@@ -28,11 +28,11 @@ public:
     void controlpoints_end() noexcept {
         value += 10000;
     }
-    
+
     void knots_begin(const uint32_t /*count*/) noexcept {
         ++value;
     }
-    
+
     void knots_value(double /*val*/) noexcept {
         value += 2;
     }
