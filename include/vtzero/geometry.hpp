@@ -180,17 +180,24 @@ namespace vtzero {
         };
 
         template <typename TIterator>
-        void move_cursor(TIterator & itr, point<2> & cursor) {
+        void move_cursor(TIterator& itr, point<2>& cursor) {
+            // spec 4.3.2 "A ParameterInteger is zigzag encoded"
             int64_t x = protozero::decode_zigzag32(*itr++);
             int64_t y = protozero::decode_zigzag32(*itr++);
+
+            // x and y are int64_t so this addition can never overflow
             x += cursor.x;
             y += cursor.y;
+
+            // The cast is okay, because a valid vector tile can never
+            // contain values that would overflow here and we don't care
+            // what happens to invalid tiles here.
             cursor.x = static_cast<int32_t>(x);
             cursor.y = static_cast<int32_t>(y);
         }
 
         template <typename TIterator>
-        void move_cursor(TIterator & itr, point<3> & cursor) {
+        void move_cursor(TIterator& itr, point<3>& cursor) {
             int64_t x = protozero::decode_zigzag32(*itr++);
             int64_t y = protozero::decode_zigzag32(*itr++);
             int64_t z = protozero::decode_zigzag32(*itr++);
@@ -400,12 +407,12 @@ namespace vtzero {
                     }
                     std::forward<TGeomHandler>(geom_handler).controlpoints_end();
 
-                    auto d = std::distance(m_knots_it, m_knots_end);
-                    uint32_t n = d > 0 ? static_cast<uint32_t>(d) : 0;
+                    const auto d = std::distance(m_knots_it, m_knots_end);
+                    uint32_t n = d > 0 ? static_cast<uint32_t>(d) : 0; // XXX ???
                     std::forward<TGeomHandler>(geom_handler).knots_begin(n);
 
-                    for (; m_knots_it != m_knots_end; ++m_knots_it) {
-                        std::forward<TGeomHandler>(geom_handler).knots_value(*m_knots_it);
+                    while (m_knots_it != m_knots_end) {
+                        std::forward<TGeomHandler>(geom_handler).knots_value(*m_knots_it++);
                     }
 
                     std::forward<TGeomHandler>(geom_handler).knots_end();
@@ -531,7 +538,7 @@ namespace vtzero {
      */
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_spline_geometry(const geometry geometry, TGeomHandler&& geom_handler) {
-        vtzero_assert(geometry.type() == GeomType::LINESTRING);
+        vtzero_assert(geometry.type() == GeomType::LINESTRING); /// XXX ???
         detail::geometry_decoder<decltype(geometry.begin()),
                                  decltype(geometry.knots_begin()),
                                  Dimensions> decoder {

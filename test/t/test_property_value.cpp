@@ -2,10 +2,10 @@
 #include <test.hpp>
 
 #include <vtzero/encoded_property_value.hpp>
+#include <vtzero/layer.hpp>
 #include <vtzero/property.hpp>
 #include <vtzero/property_value.hpp>
 #include <vtzero/property_value_impl.hpp>
-#include <vtzero/layer.hpp>
 #include <vtzero/types.hpp>
 
 #ifdef VTZERO_TEST_WITH_VARIANT
@@ -88,7 +88,7 @@ namespace detail {
         return "variant_map:" + std::to_string(value.size());
     }
 
-} // end ns detail
+} // namespace detail
 
 struct visitor_test_to_string {
 

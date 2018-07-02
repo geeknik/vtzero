@@ -24,8 +24,8 @@ documentation.
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <utility>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace vtzero {
@@ -89,11 +89,11 @@ namespace vtzero {
         }
 
         property_map get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, map_value_type /* dummy */) const {
-            return property_map{ m_layer, value_message.get_packed_uint32() };
+            return property_map{m_layer, value_message.get_packed_uint32()};
         }
 
         property_list get_value_impl(protozero::pbf_message<detail::pbf_value>& value_message, list_value_type /* dummy */) const {
-            return property_list{ m_layer, value_message.get_packed_uint32() };
+            return property_list{m_layer, value_message.get_packed_uint32()};
         }
 
         template <typename T>
@@ -123,14 +123,14 @@ namespace vtzero {
         constexpr property_value() noexcept = default;
 
         /**
-         * Create a (valid) property_value from a data_view and layer
+         * Create a (valid) property_value from a data_view and layer.
          */
         explicit constexpr property_value(const data_view value) noexcept :
             m_value(value) {
         }
 
         /**
-         * Create a (valid) property_value from a data_view and layer
+         * Create a (valid) property_value from a data_view and layer.
          */
         explicit constexpr property_value(const data_view value, const layer* layer) noexcept :
             m_value(value),
@@ -336,7 +336,7 @@ namespace vtzero {
             case property_value_type::map_value:
                 return std::forward<V>(visitor)(value.map_value());
             case property_value_type::list_value:
-                return std::forward<V>(visitor)(value.map_value());
+                return std::forward<V>(visitor)(value.list_value());
             default: // case property_value_type::bool_value:
                 return std::forward<V>(visitor)(value.bool_value());
         }

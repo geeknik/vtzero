@@ -162,9 +162,11 @@ public:
         }
     }
 
-    void knots_value(double) {}
+    void knots_value(double) {
+    }
 
-    void knots_end() {}
+    void knots_end() {
+    }
 
     // ----------------------------------------------------------------------
 

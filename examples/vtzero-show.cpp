@@ -154,11 +154,11 @@ struct print_value {
         std::cout << '"' << value << '"';
     }
 
-    void operator()(const vtzero::property_map value) const {
+    void operator()(const vtzero::property_map& value) const {
         std::cout << "\"property_map - size: " << value.size() << '"';
     }
 
-    void operator()(const vtzero::property_list value) const {
+    void operator()(const vtzero::property_list& value) const {
         std::cout << "\"property_list - size: " << value.size() << '"';
     }
 
