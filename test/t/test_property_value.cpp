@@ -17,6 +17,7 @@ struct variant_mapping : vtzero::property_value_mapping {
 #endif
 
 #include <string>
+#include <unordered_map>
 
 struct visitor_test_void {
 
