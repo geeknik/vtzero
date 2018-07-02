@@ -19,9 +19,9 @@ documentation.
 #include "exception.hpp"
 #include "feature.hpp"
 #include "geometry.hpp"
-#include "types.hpp"
 #include "property_value.hpp"
 #include "property_value_impl.hpp"
+#include "types.hpp"
 
 #include <protozero/pbf_message.hpp>
 

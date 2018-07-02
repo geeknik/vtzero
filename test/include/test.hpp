@@ -47,23 +47,24 @@ typedef boost::make_recursive_variant<
         int64_t,
         uint64_t,
         bool,
-        std::vector< boost::recursive_variant_ >,
+        std::vector<boost::recursive_variant_>,
         std::unordered_map<std::string, boost::recursive_variant_>
     >::type variant_type;
 
 class prop_visitor : public boost::static_visitor<> {
+
     std::string expected;
 
 public:
 
-    prop_visitor(std::string const& str) : expected(str) {}
+    prop_visitor(const std::string& str) : expected(str) {}
 
     template <typename T>
-    void operator() (T const&) const {
+    void operator()(const T&) const {
         REQUIRE(false);
     }
 
-    void operator() (std::string const& str) const {
+    void operator()(const std::string& str) const {
         REQUIRE(str == expected);
     }
 };

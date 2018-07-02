@@ -12,7 +12,7 @@ typedef boost::make_recursive_variant<
         int64_t,
         uint64_t,
         bool,
-        std::vector< boost::recursive_variant_ >,
+        std::vector<boost::recursive_variant_>,
         std::unordered_map<std::string, boost::recursive_variant_>
     >::type variant_type;
 #endif

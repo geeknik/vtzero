@@ -442,7 +442,7 @@ namespace vtzero {
         }
 
         knots_const_iterator knots_begin() const noexcept {
-            return knots_const_iterator{ m_knots.data() };
+            return knots_const_iterator{m_knots.data()};
         }
 
         knots_const_iterator knots_end() const noexcept {
@@ -457,7 +457,7 @@ namespace vtzero {
         using uint32_iterator_range = protozero::iterator_range<uint32_iterator>;
 
         uint32_iterator_range m_properties{};
-        uint32_iterator m_property_iterator {};
+        uint32_iterator m_property_iterator{};
         const layer* m_layer = nullptr;
         std::size_t m_num_properties = 0;
 
@@ -474,7 +474,6 @@ namespace vtzero {
             m_property_iterator(m_properties.begin()),
             m_layer(layer),
             m_num_properties(0) {
-
             set_size();
         }
 
@@ -530,7 +529,7 @@ namespace vtzero {
         using uint32_iterator_range = protozero::iterator_range<uint32_iterator>;
 
         uint32_iterator_range m_properties{};
-        uint32_iterator m_property_iterator {};
+        uint32_iterator m_property_iterator{};
         const layer* m_layer = nullptr;
         std::size_t m_num_properties = 0;
 
@@ -619,7 +618,6 @@ namespace vtzero {
         }
 
     }; // struct list_value_type
-
 
 } // namespace vtzero
 
