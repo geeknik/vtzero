@@ -287,7 +287,7 @@ namespace vtzero {
         }
 
     }; // struct bool_value_type
-    
+
     /**
      * This class wraps the uint32_t used for looking up keys/values in the
      * key/values tables.
@@ -430,7 +430,7 @@ namespace vtzero {
         constexpr GeomType type() const noexcept {
             return m_type;
         }
-        
+
         /// Return iterator to the beginning of the data.
         const_iterator begin() const noexcept {
             return {m_data.data(), m_data.data() + m_data.size()};
@@ -450,7 +450,7 @@ namespace vtzero {
         }
 
     }; // class geometry
-    
+
     class property_map {
 
         using uint32_iterator = protozero::pbf_reader::const_uint32_iterator;
@@ -460,21 +460,21 @@ namespace vtzero {
         uint32_iterator m_property_iterator {};
         const layer* m_layer = nullptr;
         std::size_t m_num_properties = 0;
-        
+
     public:
-        
+
         property_map() = default;
-        
+
         property_map(const layer* layer) noexcept :
             m_layer(layer) {
         }
-        
+
         property_map(const layer* layer, uint32_iterator_range properties) :
             m_properties(properties),
             m_property_iterator(m_properties.begin()),
             m_layer(layer),
             m_num_properties(0) {
-            
+
             set_size();
         }
 
@@ -492,10 +492,10 @@ namespace vtzero {
             }
             m_properties = properties;
             m_property_iterator = m_properties.begin();
-            
+
             set_size();
         }
-        
+
         bool empty() const noexcept {
             return m_num_properties == 0;
         }
@@ -503,9 +503,9 @@ namespace vtzero {
         std::size_t size() const noexcept {
             return m_num_properties;
         }
-        
+
         property next();
-        
+
         index_value_pair next_indexes() {
             if (m_property_iterator == m_properties.end()) {
                 return {};
@@ -514,16 +514,16 @@ namespace vtzero {
             const auto vi = *m_property_iterator++;
             return {ki, vi};
         }
-        
+
         void reset() noexcept {
             m_property_iterator = m_properties.begin();
         }
-        
+
         template <typename TFunc>
         bool for_each_property(TFunc&& func) const;
-           
+
     }; // class property_map
-    
+
     class property_list {
 
         using uint32_iterator = protozero::pbf_reader::const_uint32_iterator;
@@ -533,18 +533,18 @@ namespace vtzero {
         uint32_iterator m_property_iterator {};
         const layer* m_layer = nullptr;
         std::size_t m_num_properties = 0;
-        
+
     public:
-        
+
         property_list() = default;
-        
+
         property_list(const layer* layer, uint32_iterator_range properties) :
             m_properties(properties),
             m_property_iterator(m_properties.begin()),
             m_layer(layer),
             m_num_properties(m_properties.size()) {
         }
-        
+
         bool empty() const noexcept {
             return m_num_properties == 0;
         }
@@ -552,9 +552,9 @@ namespace vtzero {
         std::size_t size() const noexcept {
             return m_num_properties;
         }
-        
+
         property_value next();
-        
+
         index_value next_index() {
             if (m_property_iterator == m_properties.end()) {
                 return {};
@@ -562,16 +562,16 @@ namespace vtzero {
             const auto vi = *m_property_iterator++;
             return {vi};
         }
-        
+
         void reset() noexcept {
             m_property_iterator = m_properties.begin();
         }
-        
+
         template <typename TFunc>
         bool for_each_value(TFunc&& func) const;
-           
+
     }; // class property_list
-    
+
     /// property value type holding a reference to a map
     struct map_value_type {
 

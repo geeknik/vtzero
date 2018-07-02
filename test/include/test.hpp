@@ -55,7 +55,7 @@ class prop_visitor : public boost::static_visitor<> {
     std::string expected;
 
 public:
-    
+
     prop_visitor(std::string const& str) : expected(str) {}
 
     template <typename T>

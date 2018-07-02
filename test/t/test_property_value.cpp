@@ -63,15 +63,15 @@ namespace detail {
     std::string to_string(std::vector<variant_type> const& value) {
         return "variant_vector:" + std::to_string(value.size());
     }
-    
+
     std::string to_string(std::unordered_map<std::string, variant_type> const& value) {
         return "variant_map:" + std::to_string(value.size());
     }
-    
+
     std::string to_string(vtzero::property_map const& value) {
         return "property_map:" + std::to_string(value.size());
     }
-    
+
     std::string to_string(vtzero::property_list const& value) {
         return "property_list:" + std::to_string(value.size());
     }
@@ -79,7 +79,7 @@ namespace detail {
     std::string to_string(vtzero::data_view value) {
         return std::string{value.data(), value.size()};
     }
-    
+
     std::string to_string(std::vector<string_conv> const& value) {
         return "variant_vector:" + std::to_string(value.size());
     }

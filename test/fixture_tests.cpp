@@ -84,7 +84,7 @@ struct spline_handler {
 
     void controlpoints_end() const noexcept {
     }
-    
+
     void knots_begin(uint32_t count) {
         knots.reserve(count);
     }
@@ -155,10 +155,10 @@ struct geom_handler {
     void controlpoints_point(const vtzero::point<2> pt) {
         control_points.push_back(pt);
     }
-       
+
     void controlpoints_end() const noexcept {
     }
-    
+
     void knots_begin(uint32_t count) {
         knots.reserve(count);
     }
@@ -166,7 +166,7 @@ struct geom_handler {
     void knots_value(double val) {
         knots.push_back(val);
     }
-       
+
     void knots_end() const noexcept {
     }
 

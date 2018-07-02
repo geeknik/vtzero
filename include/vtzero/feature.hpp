@@ -270,7 +270,7 @@ namespace vtzero {
      * @returns An object of type TMap with all the properties.
      * @pre @code feature.valid() @endcode
      */
-    template <typename TVariant, 
+    template <typename TVariant,
               typename TMapping = property_value_mapping,
               typename TMap = typename TMapping::template map_type<typename TMapping::string_type, TVariant>>
     TMap create_properties_map(const vtzero::feature& feature) {

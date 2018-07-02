@@ -129,7 +129,7 @@ public:
     void linestring_end() {
         ++m_count;
     }
-    
+
     // ----------------------------------------------------------------------
 
     void controlpoints_begin(const uint32_t count) {

@@ -206,7 +206,7 @@ namespace vtzero {
 
             return m_extent;
         }
-        
+
         /**
          * Return the dimensions of this layer.
          *
