@@ -84,7 +84,8 @@ namespace detail {
         return "variant_vector:" + std::to_string(value.size());
     }
 
-    std::string to_string(std::unordered_map<std::string, string_conv> const& value) {
+    template <typename T>
+    std::string to_string(std::unordered_map<std::string, T> const& value) {
         return "variant_map:" + std::to_string(value.size());
     }
 

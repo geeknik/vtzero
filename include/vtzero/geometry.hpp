@@ -407,9 +407,13 @@ namespace vtzero {
                     }
                     std::forward<TGeomHandler>(geom_handler).controlpoints_end();
 
-                    const auto d = std::distance(m_knots_it, m_knots_end);
-                    uint32_t n = d > 0 ? static_cast<uint32_t>(d) : 0; // XXX ???
-                    std::forward<TGeomHandler>(geom_handler).knots_begin(n);
+                    // static_cast is okay here, because
+                    // a) the distance can never be negative
+                    // b) if the distance is larger that what will fit into
+                    //    the uint32_t, we'll just decode some smaller part
+                    //    of them (in real world data this can't happen)
+                    const auto num_knots = static_cast<uint32_t>(std::distance(m_knots_it, m_knots_end));
+                    std::forward<TGeomHandler>(geom_handler).knots_begin(num_knots);
 
                     while (m_knots_it != m_knots_end) {
                         std::forward<TGeomHandler>(geom_handler).knots_value(*m_knots_it++);
@@ -538,7 +542,7 @@ namespace vtzero {
      */
     template <typename TGeomHandler, int Dimensions = 2>
     typename detail::get_result<TGeomHandler>::type decode_spline_geometry(const geometry geometry, TGeomHandler&& geom_handler) {
-        vtzero_assert(geometry.type() == GeomType::LINESTRING); /// XXX ???
+        vtzero_assert(geometry.type() == GeomType::SPLINE);
         detail::geometry_decoder<decltype(geometry.begin()),
                                  decltype(geometry.knots_begin()),
                                  Dimensions> decoder {
