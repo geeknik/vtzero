@@ -835,7 +835,7 @@ TEST_CASE("MVT test 046: Invalid linestring geometry that includes two points in
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{2, 2}, {2, 10}, {2, 10}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{2, 2}, {2, 10}, {2, 10}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -887,7 +887,7 @@ TEST_CASE("MVT test 049: decoding linestring with int32 overflow in x coordinate
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{std::numeric_limits<int32_t>::max(), 0}, {std::numeric_limits<int32_t>::min(), 1}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{std::numeric_limits<int32_t>::max(), 0}, {std::numeric_limits<int32_t>::min(), 1}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -907,7 +907,7 @@ TEST_CASE("MVT test 050: decoding linestring with int32 overflow in y coordinate
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{0, std::numeric_limits<int32_t>::min()}, {-1, std::numeric_limits<int32_t>::max()}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{0, std::numeric_limits<int32_t>::min()}, {-1, std::numeric_limits<int32_t>::max()}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -958,7 +958,7 @@ TEST_CASE("MVT test 053: clipped square (exact extent): a polygon that covers th
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{0, 0}, {4096, 0}, {4096, 4096}, {0, 4096}, {0, 0}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{0, 0}, {4096, 0}, {4096, 4096}, {0, 4096}, {0, 0}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -978,7 +978,7 @@ TEST_CASE("MVT test 054: clipped square (one unit buffer): a polygon that covers
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{-1, -1}, {4097, -1}, {4097, 4097}, {-1, 4097}, {-1, -1}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{-1, -1}, {4097, -1}, {4097, 4097}, {-1, 4097}, {-1, -1}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -998,7 +998,7 @@ TEST_CASE("MVT test 055: clipped square (minus one unit buffer): a polygon that 
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{1, 1}, {4095, 1}, {4095, 4095}, {1, 4095}, {1, 1}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{1, 1}, {4095, 1}, {4095, 4095}, {1, 4095}, {1, 1}}};
     REQUIRE(handler.line_data == expected);
 }
 
@@ -1018,7 +1018,7 @@ TEST_CASE("MVT test 056: clipped square (large buffer): a polygon that covers th
     geom_handler handler;
     vtzero::decode_geometry(geometry, handler);
 
-    const std::vector<std::vector<vtzero::point>> expected = {{{-200, -200}, {4296, -200}, {4296, 4296}, {-200, 4296}, {-200, -200}}};
+    const std::vector<std::vector<vtzero::point<2>>> expected = {{{-200, -200}, {4296, -200}, {4296, 4296}, {-200, 4296}, {-200, -200}}};
     REQUIRE(handler.line_data == expected);
 }
 

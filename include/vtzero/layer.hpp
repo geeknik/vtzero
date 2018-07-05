@@ -437,44 +437,6 @@ namespace vtzero {
 
     }; // class layer
 
-    inline property feature::next_property() {
-        const auto idxs = next_property_indexes();
-        property p{};
-        if (idxs.valid()) {
-            p = {m_layer->key(idxs.key()),
-                 m_layer->value(idxs.value())};
-        }
-        return p;
-    }
-
-    inline index_value_pair feature::next_property_indexes() {
-        vtzero_assert(valid());
-        if (m_property_iterator == m_properties.end()) {
-            return {};
-        }
-
-        const auto ki = *m_property_iterator++;
-        if (!index_value{ki}.valid()) {
-            throw out_of_range_exception{ki};
-        }
-
-        assert(m_property_iterator != m_properties.end());
-        const auto vi = *m_property_iterator++;
-        if (!index_value{vi}.valid()) {
-            throw out_of_range_exception{vi};
-        }
-
-        if (ki >= m_layer->key_table_size()) {
-            throw out_of_range_exception{ki};
-        }
-
-        if (vi >= m_layer->value_table_size()) {
-            throw out_of_range_exception{vi};
-        }
-
-        return {ki, vi};
-    }
-
     inline property property_map::next() {
         const auto idxs = next_indexes();
         return idxs.valid() ? property{m_layer->key(idxs.key()),

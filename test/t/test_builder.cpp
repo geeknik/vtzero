@@ -446,11 +446,11 @@ TEST_CASE("Build point feature from container with too many points") {
             return 1ul << 29u;
         }
 
-        vtzero::point* begin() const noexcept {
+        vtzero::point<2>* begin() const noexcept {
             return nullptr;
         }
 
-        vtzero::point* end() const noexcept {
+        vtzero::point<2>* end() const noexcept {
             return nullptr;
         }
 

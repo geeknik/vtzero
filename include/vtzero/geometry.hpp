@@ -381,7 +381,7 @@ namespace vtzero {
             template <typename TGeomHandler>
             typename detail::get_result<TGeomHandler>::type decode_spline(TGeomHandler&& geom_handler) {
                 // spec 4.3.4.3 "1. A MoveTo command"
-                if (next_command(detail::command_move_to())) {
+                if (next_command(CommandId::MOVE_TO)) {
                     // spec 4.3.4.3 "with a command count of 1"
                     if (count() != 1) {
                         throw geometry_exception{"MoveTo command count is not 1 (spec 4.3.4.3)"};
@@ -390,7 +390,7 @@ namespace vtzero {
                     const point_type first_point = next_point();
 
                     // spec 4.3.4.3 "2. A LineTo command"
-                    if (!next_command(detail::command_line_to())) {
+                    if (!next_command(CommandId::LINE_TO)) {
                         throw geometry_exception{"expected LineTo command (spec 4.3.4.3)"};
                     }
 

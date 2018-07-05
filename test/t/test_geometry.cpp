@@ -202,7 +202,7 @@ TEST_CASE("geometry_decoder with polygon with wrong ClosePath count 2") {
 TEST_CASE("geometry_decoder with polygon with wrong ClosePath count 0") {
     const container g = {9, 6, 12, 18, 10, 12, 24, 44, 7};
 
-    vtzero::detail::geometry_decoder<iterator> decoder{g.cbegin(), g.cend(), g.size() / 2};
+    vtzero::detail::geometry_decoder<iterator, iterator, 2> decoder{g.cbegin(), g.cend(), {}, {}, g.size() / 2};
     REQUIRE(decoder.count() == 0);
     REQUIRE_FALSE(decoder.done());
 
@@ -287,7 +287,7 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in x coordin
     REQUIRE(decoder.next_point() == vtzero::point<2>(std::numeric_limits<int32_t>::max(), 0));
     REQUIRE(decoder.next_command(vtzero::detail::CommandId::LINE_TO));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(std::numeric_limits<int32_t>::min(), 1));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(std::numeric_limits<int32_t>::min(), 1));
 }
 
 TEST_CASE("geometry_decoder decoding linestring with int32 overflow in y coordinate") {
@@ -308,7 +308,7 @@ TEST_CASE("geometry_decoder decoding linestring with int32 overflow in y coordin
     REQUIRE(decoder.next_point() == vtzero::point<2>(0, std::numeric_limits<int32_t>::min()));
     REQUIRE(decoder.next_command(vtzero::detail::CommandId::LINE_TO));
     REQUIRE(decoder.count() == 1);
-    REQUIRE(decoder.next_point() == vtzero::point(-1, std::numeric_limits<int32_t>::max()));
+    REQUIRE(decoder.next_point() == vtzero::point<2>(-1, std::numeric_limits<int32_t>::max()));
 }
 
 TEST_CASE("geometry_decoder with multipoint with a huge count") {
