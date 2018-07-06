@@ -37,10 +37,6 @@ documentation.
  */
 namespace vtzero {
 
-    class layer;
-    class property;
-    class property_value;
-
     /**
      * Using data_view class from protozero. See the protozero documentation
      * on how to change this to use a different implementation.
@@ -450,6 +446,10 @@ namespace vtzero {
         }
 
     }; // class geometry
+
+    class layer;
+    class property;
+    class property_value;
 
     class property_map {
 

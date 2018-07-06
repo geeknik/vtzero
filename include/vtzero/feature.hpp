@@ -39,7 +39,7 @@ namespace vtzero {
     class feature {
 
         uint64_t m_id = 0; // defaults to 0, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L32
-        property_map m_properties {};
+        property_map m_properties{};
         data_view m_geometry{};
         data_view m_knots{};
         GeomType m_geometry_type = GeomType::UNKNOWN; // defaults to UNKNOWN, see https://github.com/mapbox/vector-tile-spec/blob/master/2.1/vector_tile.proto#L41

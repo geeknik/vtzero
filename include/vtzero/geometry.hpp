@@ -91,7 +91,6 @@ namespace vtzero {
      * If your point type doesn't have members x any y, you can overload this
      * function for your type and it will be used by vtzero.
      */
-
     template <typename TPoint>
     point<2> create_vtzero_point(const TPoint& p) noexcept {
         return {p.x, p.y};
@@ -301,7 +300,6 @@ namespace vtzero {
 
                 return true;
             }
-
 
             point_type next_point() {
                 vtzero_assert(m_count > 0);

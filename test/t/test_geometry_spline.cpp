@@ -44,6 +44,7 @@ public:
     int result() const noexcept {
         return value;
     }
+
 }; // class dummy_geom_handler
 
 TEST_CASE("Calling decode_spline_geometry() with empty input") {

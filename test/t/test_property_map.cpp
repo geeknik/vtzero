@@ -5,7 +5,7 @@
 
 #ifdef VTZERO_TEST_WITH_VARIANT
 # include <boost/variant.hpp>
-typedef boost::make_recursive_variant<
+using variant_type = boost::make_recursive_variant<
         std::string,
         float,
         double,
@@ -14,7 +14,7 @@ typedef boost::make_recursive_variant<
         bool,
         std::vector<boost::recursive_variant_>,
         std::unordered_map<std::string, boost::recursive_variant_>
-    >::type variant_type;
+    >::type;
 #endif
 
 #include <map>

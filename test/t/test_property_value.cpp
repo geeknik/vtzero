@@ -97,7 +97,8 @@ struct visitor_test_to_string {
     std::string operator()(T value) {
         return detail::to_string(value);
     }
-};
+
+}; // struct visitor_test_to_string
 
 struct string_conv {
 
@@ -112,7 +113,7 @@ struct string_conv {
         return s;
     }
 
-};
+}; // struct string_conv
 
 struct string_mapping : vtzero::property_value_mapping {
     using string_type = std::string;
