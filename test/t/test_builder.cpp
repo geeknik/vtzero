@@ -380,20 +380,20 @@ TEST_CASE("Copy only point geometries using geometry_feature_builder") {
 
 struct points_to_vector {
 
-    std::vector<vtzero::point> m_points{};
+    std::vector<vtzero::point<2>> m_points{};
 
     void points_begin(const uint32_t count) {
         m_points.reserve(count);
     }
 
-    void points_point(const vtzero::point point) {
+    void points_point(const vtzero::point<2> point) {
         m_points.push_back(point);
     }
 
     void points_end() const {
     }
 
-    std::vector<vtzero::point> result() {
+    std::vector<vtzero::point<2>> result() {
         return m_points;
     }
 
